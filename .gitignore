@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets : ne jamais committer de fichier .env (seul .env.example est versionné)
+.env
+.env.*
+!.env.example
+
+.DS_Store
+npm-debug.log*
