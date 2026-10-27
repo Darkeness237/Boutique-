@@ -8,7 +8,8 @@ export function stripe(): Stripe {
   if (!client) {
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) throw new Error("STRIPE_SECRET_KEY manquante");
-    client = new Stripe(key);
+    // Client HTTP basé sur fetch : standard, compatible avec tous les hébergeurs et proxys.
+    client = new Stripe(key, { httpClient: Stripe.createFetchHttpClient() });
   }
   return client;
 }
