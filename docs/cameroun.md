@@ -27,7 +27,10 @@ reviennent très cher (un boîtier à 62 € coûte environ 142 500 FCFA livré,
 Les marchandises exportées hors de l'Union européenne sont exonérées de TVA française : la valeur de
 base est donc le prix France **hors TVA** (`private.cm_params.goods_without_fr_vat = true`).
 
-**À faire confirmer par 1foTrade et un comptable.** En franchise de base (micro-entreprise non
+**Confirmé par le gérant le 27 octobre 2026** : achats hors TVA pour l'export. Le justificatif
+d'exportation sera fourni par le transitaire, à conserver pour chaque envoi.
+
+Rappel du cadre : En franchise de base (micro-entreprise non
 assujettie), vous payez la TVA sur vos achats sans pouvoir la récupérer. Acheter **sans TVA** des
 produits destinés à l'export passe en principe par le régime des achats en franchise (article 275
 du CGI), réservé aux exportateurs assujettis et soumis à justificatifs d'exportation. Si vous ne
