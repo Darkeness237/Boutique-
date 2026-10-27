@@ -22,6 +22,8 @@ const schema = z.object({
     z.enum(Object.keys(SORTS) as [Sort, ...Sort[]]).optional().catch(undefined),
   ),
   page: z.preprocess(one, z.coerce.number().int().min(1).max(500).optional().catch(undefined)),
+  sous: z.preprocess(one, z.string().max(40).optional().catch(undefined)),
+  promo: z.preprocess(one, z.literal("1").optional().catch(undefined)),
 });
 
 export type Filters = {
@@ -31,11 +33,14 @@ export type Filters = {
   dispo: boolean;
   tri: Sort;
   page: number;
+  sous?: string;
+  promo: boolean;
 };
 
 export function parseFilters(
   params: Record<string, string | string[] | undefined>,
   allowedBrands: string[],
+  allowedSubs: string[] = [],
 ): Filters {
   const parsed = schema.parse(params);
   return {
@@ -45,6 +50,8 @@ export function parseFilters(
     dispo: parsed.dispo === "1",
     tri: parsed.tri ?? "pertinence",
     page: parsed.page ?? 1,
+    sous: parsed.sous && allowedSubs.includes(parsed.sous) ? parsed.sous : undefined,
+    promo: parsed.promo === "1",
   };
 }
 
@@ -56,6 +63,8 @@ export function filtersToQuery(f: Filters, page: number): string {
   if (f.prixMax) p.set("prixMax", String(f.prixMax));
   if (f.dispo) p.set("dispo", "1");
   if (f.tri !== "pertinence") p.set("tri", f.tri);
+  if (f.sous) p.set("sous", f.sous);
+  if (f.promo) p.set("promo", "1");
   if (page > 1) p.set("page", String(page));
   const s = p.toString();
   return s ? `?${s}` : "";

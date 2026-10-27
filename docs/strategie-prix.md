@@ -57,7 +57,28 @@ graphique seule.
 - Une **variation de plus de x2** depuis l'import précédent est bloquée.
 - Les produits bloqués restent invisibles tant que personne ne les a vérifiés.
 
-## Offre de lancement (proposition)
+## Promotions en place
+
+| Offre | Rayon | Remise | Fin |
+|---|---|---|---|
+| Offre de lancement | Refroidissement | 10 % | 30 novembre 2026 |
+| Offre de lancement | Boîtiers | 8 % | 30 novembre 2026 |
+| Semaine des périphériques | Périphériques | 12 % | 9 novembre 2026 |
+
+Fonctionnement (table `promotions` dans Supabase, réévaluée toutes les heures) :
+
+- **Prix barré légal** : c'est le prix le plus bas des 30 derniers jours, lu dans `price_history`
+  (article L112-1-1 du Code de la consommation). Il n'est jamais saisi à la main.
+- **Jamais à perte** : un produit dont la remise ferait passer sous « coût + marge minimale » est
+  plafonné à ce plancher, et la promotion n'est pas affichée si la remise restante est inférieure à 3 %.
+- **Pas de fausse urgence** : les comptes à rebours affichent la vraie date de fin de l'offre.
+- Le pourcentage affiché est calculé sur les prix réellement affichés (arrondis en ,90) : il peut
+  dépasser d'un point la remise configurée, jamais l'inverse.
+
+Pour créer une offre : insérer une ligne dans `promotions` (rayon, sous-rayon ou produit, remise,
+dates), puis `select private.apply_promotions();` ou attendre la passe horaire.
+
+## Offre de lancement (proposition initiale)
 
 - **Livraison offerte dès 99 €** (déjà en place), sans date de fin.
 - Pendant le premier mois : **−10 % sur les accessoires et le refroidissement achetés avec une config**

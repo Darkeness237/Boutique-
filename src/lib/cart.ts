@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Product } from "./product";
+import { effectivePrice, type Product } from "./product";
 
 export const MAX_QTY = 10;
 const MAX_LINES = 50;
@@ -35,7 +35,7 @@ export function priceCart(lines: CartLine[], products: Product[]): { lines: Pric
   for (const line of lines) {
     const product = byId.get(line.id);
     if (!product) continue;
-    priced.push({ product, qty: line.qty, totalCents: product.price_cents * line.qty });
+    priced.push({ product, qty: line.qty, totalCents: effectivePrice(product) * line.qty });
   }
   return { lines: priced, subtotalCents: priced.reduce((s, l) => s + l.totalCents, 0) };
 }

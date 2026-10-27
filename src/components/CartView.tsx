@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { displayName, type Product } from "@/lib/product";
+import { activePromo, displayName, effectivePrice, type Product } from "@/lib/product";
 import { FREE_SHIPPING_CENTS, MAX_QTY, SHIPPING_CENTS, priceCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { PRICE_NOTE, TOTAL_LABEL } from "@/lib/legal";
@@ -24,7 +24,7 @@ export function CartView() {
     }
     const controller = new AbortController();
     // Les prix sont relus côté serveur à chaque affichage du panier.
-    fetch(`/api/panier?ids=${encodeURIComponent(idsKey)}`, { signal: controller.signal })
+    fetch(`/api/produits?ids=${encodeURIComponent(idsKey)}`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((products: Product[]) => setLoad({ status: "ready", products }))
       .catch((e) => {
@@ -78,7 +78,10 @@ export function CartView() {
                 <Link href={`/produit/${product.slug}`} className="cart-line-name">
                   {name}
                 </Link>
-                <p className="cart-line-meta">{formatPrice(product.price_cents)} l&apos;unité</p>
+                <p className="cart-line-meta">
+                  {formatPrice(effectivePrice(product))} l&apos;unité
+                  {activePromo(product) && <span className="price-badge">−{activePromo(product)!.pct} %</span>}
+                </p>
                 <div className="cart-line-controls">
                   <div className="qty" role="group" aria-label={`Quantité de ${name}`}>
                     <button type="button" onClick={() => setQty(id, qty - 1)} disabled={qty <= 1} aria-label="Retirer un">

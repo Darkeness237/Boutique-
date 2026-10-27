@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getCategories } from "@/lib/catalog";
+import { getCategoryTree } from "@/lib/catalog";
 import { CartLink } from "./CartLink";
+import { CategoryDrawer } from "./CategoryDrawer";
 import { Logo } from "./Logo";
 
 export async function Header() {
-  const categories = await getCategories();
+  const tree = await getCategoryTree();
   return (
     <header className="site-header">
       <a href="#contenu" className="skip-link">
@@ -18,14 +19,7 @@ export async function Header() {
           <label htmlFor="q" className="visually-hidden">
             Rechercher un produit
           </label>
-          <input
-            id="q"
-            name="q"
-            type="search"
-            placeholder="RTX 5070, Ryzen 7, AM5…"
-            maxLength={80}
-            autoComplete="off"
-          />
+          <input id="q" name="q" type="search" placeholder="RTX 5070, Ryzen 7, AM5…" maxLength={80} autoComplete="off" />
           <button type="submit" className="btn btn-dark btn-sm">
             Rechercher
           </button>
@@ -37,15 +31,19 @@ export async function Header() {
           <CartLink />
         </nav>
       </div>
-      <nav className="header-cats" aria-label="Catégories">
-        <ul className="wrap">
-          {categories.map((c) => (
-            <li key={c.slug}>
-              <Link href={`/catalogue/${c.slug}`}>{c.name}</Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <div className="header-sub">
+        <div className="wrap header-sub-row">
+          <CategoryDrawer tree={tree} />
+          <nav aria-label="Raccourcis" className="header-shortcuts">
+            <Link href="/catalogue?promo=1" className="shortcut-deal">
+              Offres du moment
+            </Link>
+            <Link href="/#config">Config du moment</Link>
+            <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Petits prix</Link>
+            <Link href="/catalogue/cartes-graphiques?dispo=1">Cartes graphiques</Link>
+          </nav>
+        </div>
+      </div>
     </header>
   );
 }

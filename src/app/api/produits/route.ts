@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getProductsByIds } from "@/lib/catalog";
 
-// Renvoie les prix et la disponibilité des articles du panier.
+// Renvoie prix, promotions et disponibilité de produits (panier, récemment consultés).
 // Entrée : ?ids=12,34,56 (50 identifiants numériques au plus). Tout le reste est rejeté.
 export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get("ids") ?? "";
