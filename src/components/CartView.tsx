@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { activePromo, displayName, effectivePrice, type Product } from "@/lib/product";
+import { displayName, type Product } from "@/lib/product";
+import type { DeliveryZone } from "@/lib/catalog";
+import { formatMoney, isAvailableIn, priceNote, promoFor, unitPrice } from "@/lib/market";
 import { FREE_SHIPPING_CENTS, MAX_QTY, SHIPPING_CENTS, priceCart } from "@/lib/cart";
-import { formatPrice } from "@/lib/format";
 import { PRICE_NOTE, TOTAL_LABEL } from "@/lib/legal";
 import { useCart } from "./CartProvider";
+import { useMarket } from "./MarketProvider";
 import { ProductVisual } from "./ProductVisual";
 
 type Load = { status: "loading" } | { status: "ready"; products: Product[] } | { status: "error" };
 
-export function CartView() {
+export function CartView({ zones }: { zones: DeliveryZone[] }) {
   const { lines: raw, ready, setQty, remove } = useCart();
+  const market = useMarket();
+  const [zone, setZone] = useState(zones[0]?.slug ?? "");
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const idsKey = raw.map((l) => l.id).sort().join(",");
 
@@ -45,7 +49,8 @@ export function CartView() {
     );
   }
 
-  const { lines, subtotalCents } = priceCart(raw, load.products);
+  const { lines, subtotalCents } = priceCart(raw, load.products, market);
+  const money = (n: number) => formatMoney(market, n);
 
   if (lines.length === 0) {
     return (
@@ -59,9 +64,12 @@ export function CartView() {
     );
   }
 
-  const shipping = subtotalCents >= FREE_SHIPPING_CENTS ? 0 : SHIPPING_CENTS;
-  const missing = FREE_SHIPPING_CENTS - subtotalCents;
-  const unavailable = lines.some((l) => !l.product.in_stock);
+  // France : livraison offerte au-delà du seuil. Cameroun : tarif de livraison à domicile de la ville.
+  const cmZone = zones.find((z) => z.slug === zone);
+  const shipping =
+    market === "cm" ? (cmZone?.fee_xaf ?? 0) : subtotalCents >= FREE_SHIPPING_CENTS ? 0 : SHIPPING_CENTS;
+  const missing = market === "fr" ? FREE_SHIPPING_CENTS - subtotalCents : 0;
+  const unavailable = lines.some((l) => !l.product.in_stock || !isAvailableIn(l.product, market));
 
   return (
     <div className="cart-layout">
@@ -79,8 +87,8 @@ export function CartView() {
                   {name}
                 </Link>
                 <p className="cart-line-meta">
-                  {formatPrice(effectivePrice(product))} l&apos;unité
-                  {activePromo(product) && <span className="price-badge">−{activePromo(product)!.pct} %</span>}
+                  {money(unitPrice(product, market))} l&apos;unité
+                  {promoFor(product, market) && <span className="price-badge">−{promoFor(product, market)!.pct} %</span>}
                 </p>
                 <div className="cart-line-controls">
                   <div className="qty" role="group" aria-label={`Quantité de ${name}`}>
@@ -97,8 +105,11 @@ export function CartView() {
                   </button>
                 </div>
                 {!product.in_stock && <p className="field-error">Plus en stock : retirez-le pour passer commande.</p>}
+                {product.in_stock && !isAvailableIn(product, market) && (
+                  <p className="field-error">Non livrable au Cameroun (trop volumineux) : retirez-le pour passer commande.</p>
+                )}
               </div>
-              <p className="cart-line-total">{formatPrice(totalCents)}</p>
+              <p className="cart-line-total">{money(totalCents)}</p>
             </li>
           );
         })}
@@ -108,18 +119,30 @@ export function CartView() {
         <h2 id="summary-title">Récapitulatif</h2>
         <p className="summary-row">
           <span>Sous-total</span>
-          <span>{formatPrice(subtotalCents)}</span>
+          <span>{money(subtotalCents)}</span>
         </p>
+        {market === "cm" && zones.length > 0 && (
+          <label className="zone-select">
+            <span>Ville de livraison</span>
+            <select value={zone} onChange={(e) => setZone(e.target.value)}>
+              {zones.map((z) => (
+                <option key={z.slug} value={z.slug}>
+                  {z.city} : {money(z.fee_xaf)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <p className="summary-row">
-          <span>Livraison</span>
-          <span>{shipping === 0 ? "Offerte" : formatPrice(shipping)}</span>
+          <span>{market === "cm" ? "Livraison à domicile" : "Livraison"}</span>
+          <span>{shipping === 0 ? "Offerte" : money(shipping)}</span>
         </p>
-        {missing > 0 && <p className="summary-note">Plus que {formatPrice(missing)} pour la livraison offerte.</p>}
+        {missing > 0 && <p className="summary-note">Plus que {money(missing)} pour la livraison offerte.</p>}
         <p className="summary-row summary-total">
-          <span>{TOTAL_LABEL}</span>
-          <span>{formatPrice(subtotalCents + shipping)}</span>
+          <span>{market === "cm" ? "Total à payer" : TOTAL_LABEL}</span>
+          <span>{money(subtotalCents + shipping)}</span>
         </p>
-        <p className="summary-note">{PRICE_NOTE}</p>
+        <p className="summary-note">{priceNote(market, PRICE_NOTE)}</p>
         {/* Le paiement passera par Stripe Checkout : le serveur recalculera les prix
             à partir des identifiants, sans jamais faire confiance au navigateur. */}
         <button type="button" className="btn btn-primary btn-lg" disabled>
@@ -128,7 +151,9 @@ export function CartView() {
         <p className="summary-note">
           {unavailable
             ? "Retirez les articles indisponibles pour continuer."
-            : "Le paiement en ligne arrive bientôt. Votre carte sera saisie sur la page sécurisée de Stripe."}
+            : market === "cm"
+              ? "Le paiement par Orange Money et MTN MoMo arrive bientôt."
+              : "Le paiement en ligne arrive bientôt. Votre carte sera saisie sur la page sécurisée de Stripe."}
         </p>
       </aside>
     </div>

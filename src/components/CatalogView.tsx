@@ -3,6 +3,7 @@ import { getBrands, getCategoryTree, PAGE_SIZE, searchProducts, type Category } 
 import { filtersToQuery, parseFilters, SORTS } from "@/lib/filters";
 import { ProductCard } from "./ProductCard";
 import { SideNav } from "./SideNav";
+import { getMarket } from "@/lib/market-server";
 
 export async function CatalogView({
   category,
@@ -11,7 +12,7 @@ export async function CatalogView({
   category?: Category;
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const [brands, tree] = await Promise.all([getBrands(category?.slug), getCategoryTree()]);
+  const [brands, tree, market] = await Promise.all([getBrands(category?.slug), getCategoryTree(), getMarket()]);
   const node = category ? tree.find((n) => n.slug === category.slug) : undefined;
   const filters = parseFilters(searchParams, brands, node?.subs.map((s) => s.slug) ?? []);
   const sub = node?.subs.find((s) => s.slug === filters.sous);
@@ -21,10 +22,12 @@ export async function CatalogView({
     subcategory: filters.sous,
     q: filters.q,
     brands: filters.marque,
-    maxPriceCents: filters.prixMax ? filters.prixMax * 100 : undefined,
+    // Le prix maximum est saisi en euros en France, en francs CFA au Cameroun.
+    maxPriceCents: filters.prixMax ? (market === "cm" ? filters.prixMax : filters.prixMax * 100) : undefined,
     inStockOnly: filters.dispo,
-    promoOnly: filters.promo,
+    promoOnly: market === "fr" && filters.promo,
     sort: filters.tri,
+    market,
     page: filters.page,
   });
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -54,6 +57,12 @@ export async function CatalogView({
         </ol>
         <h1>{title}</h1>
         {category && !sub && <p className="lede">{category.hint}</p>}
+        {market === "cm" && (
+          <p className="market-note">
+            Prix livrés au Cameroun, transport, dédouanement et TVA compris. Seuls les produits expédiables par avion sont
+            affichés.
+          </p>
+        )}
       </div>
 
       <div className="wrap catalog-layout">
@@ -76,17 +85,19 @@ export async function CatalogView({
                 ))}
               </select>
             </div>
-            <label className="check-row">
-              <input type="checkbox" name="promo" value="1" defaultChecked={filters.promo} />
-              En promotion
-            </label>
+            {market === "fr" && (
+              <label className="check-row">
+                <input type="checkbox" name="promo" value="1" defaultChecked={filters.promo} />
+                En promotion
+              </label>
+            )}
             <label className="check-row">
               <input type="checkbox" name="dispo" value="1" defaultChecked={filters.dispo} />
               En stock uniquement
             </label>
             <div>
               <label className="field-label" htmlFor="prixMax">
-                Prix maximum (€)
+                Prix maximum ({market === "cm" ? "FCFA" : "€"})
               </label>
               <input
                 id="prixMax"
@@ -94,8 +105,8 @@ export async function CatalogView({
                 type="number"
                 inputMode="numeric"
                 min={1}
-                max={20000}
-                step={1}
+                max={market === "cm" ? 50_000_000 : 20000}
+                step={market === "cm" ? 1000 : 1}
                 defaultValue={filters.prixMax}
               />
             </div>

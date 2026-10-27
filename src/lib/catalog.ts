@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { supabase } from "./supabase";
 import type { Product } from "./product";
+import type { Market } from "./market";
 
 export type Category = { slug: string; name: string; hint: string };
 export type Subcategory = { slug: string; name: string; count: number };
@@ -11,7 +12,7 @@ export { activePromo, displayName, effectivePrice } from "./product";
 
 // Une seule chaîne littérale : le client Supabase en déduit le type des lignes.
 export const PRODUCT_COLUMNS =
-  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents";
+  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max";
 
 export const PAGE_SIZE = 24;
 
@@ -34,6 +35,14 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 export async function getCategory(slug: string): Promise<Category | undefined> {
   return (await getCategories()).find((c) => c.slug === slug);
 }
+
+export type DeliveryZone = { slug: string; city: string; fee_xaf: number; days_min: number; days_max: number };
+
+/** Villes livrées au Cameroun, avec le tarif de livraison à domicile. */
+export const getDeliveryZones = cache(async (): Promise<DeliveryZone[]> => {
+  const res = await supabase.from("cm_delivery_zones").select("slug, city, fee_xaf, days_min, days_max").order("sort");
+  return must(res, "zones de livraison");
+});
 
 /** Catégories et sous-catégories avec leur nombre de produits (menu latéral). */
 export const getCategoryTree = cache(async (): Promise<CategoryNode[]> => {
@@ -92,6 +101,7 @@ export type Search = {
   promoOnly?: boolean;
   sort?: Sort;
   page?: number;
+  market?: Market;
 };
 
 export async function searchProducts(s: Search): Promise<{ items: Product[]; total: number }> {
@@ -100,14 +110,18 @@ export async function searchProducts(s: Search): Promise<{ items: Product[]; tot
   if (s.category) query = query.eq("category_slug", s.category);
   if (s.subcategory) query = query.eq("subcategory", s.subcategory);
   if (s.brands?.length) query = query.in("brand", s.brands);
-  if (s.maxPriceCents) query = query.lte("price_cents", s.maxPriceCents);
+  const cm = s.market === "cm";
+  // Au Cameroun : seuls les produits qui ont un prix livré, et le prix maximum est en FCFA.
+  if (cm) query = query.not("price_xaf", "is", null);
+  if (s.maxPriceCents) query = query.lte(cm ? "price_xaf" : "price_cents", s.maxPriceCents);
   if (s.inStockOnly) query = query.eq("in_stock", true);
   if (s.promoOnly) query = query.not("promo_price_cents", "is", null).gt("promo_ends_at", new Date().toISOString());
   for (const term of searchTerms(s.q)) query = query.ilike("name", `%${term}%`);
 
-  if (s.sort === "prix-croissant") query = query.order("price_cents");
-  else if (s.sort === "prix-decroissant") query = query.order("price_cents", { ascending: false });
-  else query = query.order("in_stock", { ascending: false }).order("has_image", { ascending: false }).order("price_cents");
+  const priceCol = cm ? "price_xaf" : "price_cents";
+  if (s.sort === "prix-croissant") query = query.order(priceCol);
+  else if (s.sort === "prix-decroissant") query = query.order(priceCol, { ascending: false });
+  else query = query.order("in_stock", { ascending: false }).order("has_image", { ascending: false }).order(priceCol);
 
   const from = (page - 1) * PAGE_SIZE;
   const res = await query.range(from, from + PAGE_SIZE - 1);
@@ -133,6 +147,7 @@ export type StockFilter = Partial<Pick<Product, "socket" | "memory" | "subcatego
   withImage?: boolean;
   promoOnly?: boolean;
   excludeId?: number;
+  market?: Market;
 };
 
 /** Produits en stock d'une catégorie (ou de toutes), triés par prix croissant. */
@@ -148,6 +163,7 @@ export async function inStock(category: string | null, f: StockFilter = {}, limi
   if (f.withImage) query = query.not("image_url", "is", null);
   if (f.promoOnly) query = query.not("promo_price_cents", "is", null).gt("promo_ends_at", new Date().toISOString());
   if (f.excludeId) query = query.neq("id", f.excludeId);
+  if (f.market === "cm") query = query.not("price_xaf", "is", null);
   // Motifs fixés dans le code (jamais issus d'une saisie) : au moins un doit correspondre.
   if (f.nameMatches?.length) query = query.or(f.nameMatches.map((m) => `name.ilike.*${m}*`).join(","));
   const res = await query.order("price_cents").limit(limit);

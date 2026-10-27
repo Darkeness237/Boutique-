@@ -22,3 +22,8 @@ export function deliveryWindow(leadDays: number, now = new Date()): { from: stri
     to: fmt.format(addBusinessDays(now, leadDays + TRANSIT_MAX)),
   };
 }
+
+/** Fenêtre de livraison à partir d'un nombre de jours ouvrés minimum et maximum (Cameroun). */
+export function deliveryRange(minDays: number, maxDays: number, now = new Date()): { from: string; to: string } {
+  return { from: fmt.format(addBusinessDays(now, minDays)), to: fmt.format(addBusinessDays(now, maxDays)) };
+}

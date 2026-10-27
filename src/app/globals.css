@@ -2652,3 +2652,79 @@ svg {
     display: none;
   }
 }
+
+/* Marchés France / Cameroun ------------------------------------------- */
+.market-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.market-switch button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 0.8125rem/1 var(--font-body);
+  cursor: pointer;
+}
+
+.market-switch button span {
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+.market-switch button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.market-switch[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+@media (max-width: 760px) {
+  .market-switch button {
+    padding: 6px 9px;
+  }
+  .market-switch button span {
+    display: none;
+  }
+}
+
+.market-note {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-s);
+  background: #eef0fd;
+  color: #2a3285;
+  font-size: 0.9375rem;
+  max-width: 72ch;
+}
+
+.price-unavailable {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.zone-select {
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.zone-select select {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  font: 400 0.9375rem var(--font-body);
+}

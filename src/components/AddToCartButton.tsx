@@ -2,19 +2,25 @@
 
 import { useState } from "react";
 import { useCart } from "./CartProvider";
+import { useMarket } from "./MarketProvider";
 
 export function AddToCartButton({
   productId,
   productName,
   disabled,
   compact,
+  cmAvailable = true,
 }: {
   productId: string;
   productName: string;
   disabled?: boolean;
   compact?: boolean;
+  /** Le produit est-il proposé au Cameroun ? */
+  cmAvailable?: boolean;
 }) {
   const { add } = useCart();
+  const market = useMarket();
+  if (market === "cm" && !cmAvailable) disabled = true;
   const [added, setAdded] = useState(false);
 
   if (disabled) {

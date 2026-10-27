@@ -10,9 +10,12 @@ import { ProductImage } from "@/components/ProductImage";
 import { ProductRail } from "@/components/ProductRail";
 import { RecentlyViewed, RecordView } from "@/components/RecentlyViewed";
 import { bundleFor, similarTo } from "@/lib/bundle";
-import { activePromo, displayName, effectivePrice, getCategoryTree, getProductBySlug } from "@/lib/catalog";
+import { displayName, getCategoryTree, getDeliveryZones, getProductBySlug } from "@/lib/catalog";
+import { PromoFlag } from "@/components/PriceTag";
+import { formatMoney, isAvailableIn, priceNote, promoFor, unitPrice } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
 import { estimatedPartWatts } from "@/lib/compat";
-import { deliveryWindow } from "@/lib/delivery";
+import { deliveryRange, deliveryWindow } from "@/lib/delivery";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { formatPrice, stockLabel } from "@/lib/format";
 import { PRICE_NOTE } from "@/lib/legal";
@@ -28,15 +31,26 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug((await params).slug);
   if (!product) notFound();
 
-  const [tree, bundle, similar] = await Promise.all([getCategoryTree(), bundleFor(product), similarTo(product)]);
+  const market = await getMarket();
+  const [tree, bundle, similar, zones] = await Promise.all([
+    getCategoryTree(),
+    bundleFor(product, market),
+    similarTo(product, market),
+    getDeliveryZones(),
+  ]);
+  const available = isAvailableIn(product, market);
+  const cities = zones.map((z) => z.city).join(" et ");
   const category = tree.find((c) => c.slug === product.category_slug);
   const sub = category?.subs.find((s) => s.slug === product.subcategory);
   const stock = stockLabel(product.in_stock, product.lead_days);
   const name = displayName(product);
   const fullName = `${product.brand} ${name}`;
-  const promo = activePromo(product);
-  const price = effectivePrice(product);
-  const delivery = deliveryWindow(product.lead_days);
+  const promo = promoFor(product, market);
+  const price = unitPrice(product, market);
+  const delivery =
+    market === "cm"
+      ? deliveryRange(product.cm_days_min ?? product.lead_days + 10, product.cm_days_max ?? product.lead_days + 21)
+      : deliveryWindow(product.lead_days);
   const watts = estimatedPartWatts(product);
 
   const makerSpecs = Array.isArray(product.specs) ? product.specs : [];
@@ -50,7 +64,7 @@ export default async function ProductPage({ params }: Props) {
     ...(watts ? [["Consommation typique", `${watts} W (estimation)`] as [string, string]] : []),
   ];
   const bundleAll = [product, ...bundle];
-  const bundleTotal = bundleAll.reduce((s, p) => s + effectivePrice(p), 0);
+  const bundleTotal = bundleAll.reduce((s, p) => s + unitPrice(p, market), 0);
 
   return (
     <>
@@ -77,7 +91,7 @@ export default async function ProductPage({ params }: Props) {
       <div className="wrap pdp">
         <div className="pdp-gallery">
           <div className="product-hero-visual">
-            {promo && <span className="card-flag card-flag-lg">{promo.label}</span>}
+            <PromoFlag product={product} large />
             <ProductImage src={product.image_url} alt={fullName} category={product.category_slug} brand={product.brand} priority />
           </div>
         </div>
@@ -121,19 +135,36 @@ export default async function ProductPage({ params }: Props) {
               <Countdown endsAt={promo.endsAt} />
             </p>
           )}
-          <p className="buy-note">{PRICE_NOTE}</p>
+          <p className="buy-note">{priceNote(market, PRICE_NOTE)}</p>
           <p className={`stock stock-${stock.tone} pdp-stock`}>{stock.text}</p>
-          {product.in_stock && (
+          {product.in_stock && available && market === "fr" && (
             <p className="pdp-delivery">
               Livraison estimée entre le <strong>{delivery.from}</strong> et le <strong>{delivery.to}</strong>
               {price >= FREE_SHIPPING_CENTS ? ", offerte." : `. Offerte dès ${formatPrice(FREE_SHIPPING_CENTS)} d'achat.`}
             </p>
           )}
-          <BuyBox productId={String(product.id)} productName={fullName} unitPriceCents={price} inStock={product.in_stock} />
+          {product.in_stock && available && market === "cm" && (
+            <p className="pdp-delivery">
+              Livraison estimée à domicile entre le <strong>{delivery.from}</strong> et le <strong>{delivery.to}</strong>,
+              à {cities}. Envoi par avion depuis la France, dédouanement compris.
+            </p>
+          )}
+          {market === "cm" && !available && (
+            <p className="pdp-delivery">
+              Ce produit est trop volumineux pour être envoyé par avion à un prix raisonnable. Il n&apos;est pas proposé au
+              Cameroun pour le moment.
+            </p>
+          )}
+          <BuyBox
+            productId={String(product.id)}
+            productName={fullName}
+            priceLabel={formatMoney(market, price)}
+            inStock={product.in_stock && available}
+          />
           <ul className="pdp-assurances">
-            <li>Paiement sécurisé par Stripe</li>
-            <li>Retour gratuit sous 14 jours</li>
-            <li>Garantie légale de 2 ans</li>
+            <li>{market === "cm" ? "Paiement par Orange Money ou MTN MoMo" : "Paiement sécurisé par Stripe"}</li>
+            <li>{market === "cm" ? "Aucun frais de douane à l'arrivée" : "Retour gratuit sous 14 jours"}</li>
+            <li>{market === "cm" ? "Garantie de 2 ans" : "Garantie légale de 2 ans"}</li>
           </ul>
         </aside>
       </div>
@@ -159,13 +190,13 @@ export default async function ProductPage({ params }: Props) {
                       {i === 0 ? "Cet article : " : ""}
                       {p.brand} {displayName(p)}
                     </span>
-                    <span className="bundle-price">{formatPrice(effectivePrice(p))}</span>
+                    <span className="bundle-price">{formatMoney(market, unitPrice(p, market))}</span>
                   </Link>
                 </div>
               ))}
               <div className="bundle-total">
                 <p>
-                  Total pour les {bundleAll.length} : <strong>{formatPrice(bundleTotal)}</strong>
+                  Total pour les {bundleAll.length} : <strong>{formatMoney(market, bundleTotal)}</strong>
                 </p>
                 <AddBuildButton ids={bundleAll.map((p) => String(p.id))} disabled={!product.in_stock} tone="primary" />
               </div>
@@ -196,10 +227,26 @@ export default async function ProductPage({ params }: Props) {
         <section className="pdp-shipping" aria-labelledby="livraison-title">
           <h2 id="livraison-title">Livraison et retours</h2>
           <dl>
-            <dt>Livraison</dt>
-            <dd>Colissimo ou point relais. Offerte dès {formatPrice(FREE_SHIPPING_CENTS)} d&apos;achat.</dd>
-            <dt>Retours</dt>
-            <dd>14 jours pour changer d&apos;avis, retour gratuit d&apos;un produit non utilisé, remboursé sous 14 jours.</dd>
+            {market === "cm" ? (
+              <>
+                <dt>Livraison</dt>
+                <dd>
+                  Envoi par avion depuis la France, dédouanement à Douala, puis livraison à domicile à {cities}. Le
+                  tarif de livraison à domicile dépend de la ville et s&apos;affiche au panier.
+                </dd>
+                <dt>Droits et taxes</dt>
+                <dd>Déjà compris dans le prix : vous ne payez rien de plus à l&apos;arrivée.</dd>
+                <dt>Retours</dt>
+                <dd>Produit défectueux ou non conforme à la livraison : nous organisons le retour et l&apos;échange.</dd>
+              </>
+            ) : (
+              <>
+                <dt>Livraison</dt>
+                <dd>Colissimo ou point relais. Offerte dès {formatPrice(FREE_SHIPPING_CENTS)} d&apos;achat.</dd>
+                <dt>Retours</dt>
+                <dd>14 jours pour changer d&apos;avis, retour gratuit d&apos;un produit non utilisé, remboursé sous 14 jours.</dd>
+              </>
+            )}
             <dt>Garantie</dt>
             <dd>Garantie légale de conformité de 2 ans : en cas de panne, nous gérons l&apos;échange avec le fabricant.</dd>
           </dl>

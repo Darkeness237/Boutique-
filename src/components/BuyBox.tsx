@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MAX_QTY } from "@/lib/cart";
-import { formatPrice } from "@/lib/format";
 import { useCart } from "./CartProvider";
 
 // Boutons d'achat de la fiche produit, plus une barre d'achat fixée en bas de l'écran
@@ -11,12 +10,13 @@ import { useCart } from "./CartProvider";
 export function BuyBox({
   productId,
   productName,
-  unitPriceCents,
+  priceLabel,
   inStock,
 }: {
   productId: string;
   productName: string;
-  unitPriceCents: number;
+  /** Prix déjà formaté dans la devise du visiteur. */
+  priceLabel: string;
   inStock: boolean;
 }) {
   const { add } = useCart();
@@ -84,7 +84,7 @@ export function BuyBox({
       <div className={`sticky-buy ${showBar ? "is-visible" : ""}`} aria-hidden={!showBar} inert={!showBar}>
         <div className="wrap sticky-buy-row">
           <p className="sticky-buy-name">{productName}</p>
-          <p className="price">{formatPrice(unitPriceCents)}</p>
+          <p className="price">{priceLabel}</p>
           <button type="button" className="btn btn-primary" onClick={addToCart}>
             {added ? "Ajouté" : "Ajouter au panier"}
           </button>

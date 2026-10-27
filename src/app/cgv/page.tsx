@@ -34,6 +34,21 @@ export default function CgvPage() {
           Tous les produits bénéficient de la garantie légale de conformité (2 ans, articles L217-3 et suivants du Code
           de la consommation) et de la garantie des vices cachés (articles 1641 et suivants du Code civil).
         </p>
+        <h2>Ventes à destination du Cameroun</h2>
+        <p>
+          Les prix affichés en francs CFA sont des prix livrés : ils comprennent le transport aérien depuis la France,
+          l&apos;assurance, les droits de douane, les taxes à l&apos;importation et la TVA camerounaise. Aucun frais
+          supplémentaire n&apos;est demandé à l&apos;arrivée, hormis la livraison à domicile, dont le tarif dépend de la
+          ville et s&apos;affiche avant le paiement.
+        </p>
+        <p>
+          Conversion : 1 € = 655,957 FCFA (parité fixe). Délai indicatif : 2 à 4 semaines entre la commande et la
+          livraison, dédouanement compris. Les produits trop volumineux pour le fret aérien ne sont pas proposés.
+        </p>
+        <p>
+          Un produit défectueux ou non conforme à la livraison est échangé à nos frais. Conditions de retour pour
+          changement d&apos;avis : <span className="todo">[à définir avec le transitaire et à faire valider]</span>.
+        </p>
       </article>
     </div>
   );

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { activePromo, displayName, effectivePrice, type Product } from "@/lib/product";
-import { formatPrice } from "@/lib/format";
+import { displayName, type Product } from "@/lib/product";
+import { formatMoney, isAvailableIn, promoFor, unitPrice } from "@/lib/market";
+import { useMarket } from "./MarketProvider";
 import { ProductImage } from "./ProductImage";
 
 const KEY = "silicium.vus.v1";
@@ -34,6 +35,7 @@ export function RecordView({ productId }: { productId: string }) {
 /** Les derniers produits vus, relus côté serveur pour afficher les prix du moment. */
 export function RecentlyViewed({ excludeId, title = "Vous avez consulté" }: { excludeId?: string; title?: string }) {
   const [items, setItems] = useState<Product[]>([]);
+  const market = useMarket();
 
   useEffect(() => {
     const ids = readIds().filter((id) => id !== excludeId);
@@ -55,7 +57,7 @@ export function RecentlyViewed({ excludeId, title = "Vous avez consulté" }: { e
       </div>
       <ul className="mini-rail">
         {items.map((p) => {
-          const promo = activePromo(p);
+          const promo = promoFor(p, market);
           return (
             <li key={p.id}>
               <Link href={`/produit/${p.slug}`} className="mini-card">
@@ -66,7 +68,7 @@ export function RecentlyViewed({ excludeId, title = "Vous avez consulté" }: { e
                   {p.brand} {displayName(p)}
                 </span>
                 <span className="mini-card-price">
-                  {formatPrice(effectivePrice(p))}
+                  {isAvailableIn(p, market) ? formatMoney(market, unitPrice(p, market)) : "Non livrable au Cameroun"}
                   {promo && <span className="price-badge">−{promo.pct} %</span>}
                 </span>
               </Link>

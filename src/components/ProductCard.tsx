@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { activePromo, displayName, type Product } from "@/lib/catalog";
+import { displayName, type Product } from "@/lib/catalog";
 import { stockLabel } from "@/lib/format";
-import { PriceTag } from "./PriceTag";
+import { PriceTag, PromoFlag } from "./PriceTag";
 import { ProductImage } from "./ProductImage";
 import { AddToCartButton } from "./AddToCartButton";
 
@@ -18,10 +18,9 @@ export function ProductCard({ product }: { product: Product }) {
   const stock = stockLabel(product.in_stock, product.lead_days);
   const spec = keySpec(product);
   const name = displayName(product);
-  const promo = activePromo(product);
   return (
     <article className="product-card">
-      {promo && <span className="card-flag">{promo.label}</span>}
+      <PromoFlag product={product} />
       <Link href={`/produit/${product.slug}`} className="product-card-link">
         <div className="product-card-visual">
           <ProductImage src={product.image_url} alt={`${product.brand} ${name}`} category={product.category_slug} brand={product.brand} />
@@ -39,6 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
           productId={String(product.id)}
           productName={`${product.brand} ${name}`}
           disabled={!product.in_stock}
+          cmAvailable={product.price_xaf !== null}
           compact
         />
       </div>

@@ -29,9 +29,36 @@ export function middleware(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
 
+  // Premier passage : on devine le pays de livraison (Cameroun ou France) d'après la géolocalisation
+  // fournie par l'hébergeur ou la langue du navigateur. Le visiteur peut changer ensuite.
+  let market: string | null = null;
+  if (!request.cookies.get("marche")) {
+    market = guessCountry(request) === "CM" ? "cm" : "fr";
+    requestHeaders.set("cookie", `${request.headers.get("cookie") ?? ""}; marche=${market}`.replace(/^; /, ""));
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+  if (market) {
+    response.cookies.set("marche", market, { path: "/", maxAge: 31536000, sameSite: "lax", secure: !isDev });
+  }
   return response;
+}
+
+function guessCountry(request: NextRequest): string | null {
+  // Netlify transmet la géolocalisation dans un en-tête JSON encodé en base64.
+  const geo = request.headers.get("x-nf-geo");
+  if (geo) {
+    try {
+      const code = JSON.parse(atob(geo))?.country?.code;
+      if (typeof code === "string") return code.toUpperCase();
+    } catch {
+      // En-tête illisible : on passe à l'indice suivant.
+    }
+  }
+  const country = request.headers.get("x-country");
+  if (country) return country.toUpperCase();
+  return /\b[a-z]{2}-CM\b/i.test(request.headers.get("accept-language") ?? "") ? "CM" : null;
 }
 
 export const config = {

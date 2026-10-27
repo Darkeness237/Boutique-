@@ -15,7 +15,7 @@ const many = (v: unknown) => (v === undefined ? [] : Array.isArray(v) ? v : [v])
 const schema = z.object({
   q: z.preprocess(one, z.string().trim().max(80).optional().catch(undefined)),
   marque: z.preprocess(many, z.array(z.string().max(80)).max(20).catch([])),
-  prixMax: z.preprocess(one, z.coerce.number().int().min(1).max(20000).optional().catch(undefined)),
+  prixMax: z.preprocess(one, z.coerce.number().int().min(1).max(50_000_000).optional().catch(undefined)),
   dispo: z.preprocess(one, z.literal("1").optional().catch(undefined)),
   tri: z.preprocess(
     one,

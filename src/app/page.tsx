@@ -12,6 +12,8 @@ import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { getCategories, getCategoryTree, getTopBrands, inStock, type Product } from "@/lib/catalog";
 import { dealsIn, type Deal } from "@/lib/deals";
 import { formatPrice } from "@/lib/format";
+import type { Market } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
 
 const day = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" });
 
@@ -29,6 +31,42 @@ const COVER_MIN_EUROS: Record<string, number> = {
 };
 
 const DEAL_CATEGORIES = ["refroidissement", "peripheriques", "boitiers"];
+
+/** Bannières du Cameroun : pas de promotions là-bas pour l'instant, on met en avant le service. */
+function cmBanners(gpu: Product | undefined, ssd: Product | undefined): Banner[] {
+  return [
+    {
+      id: "cm-livraison",
+      kicker: "Livraison à Douala et Yaoundé",
+      title: "Vos pièces PC livrées chez vous, douane comprise",
+      text: "Prix tout compris en FCFA : transport par avion, dédouanement et TVA camerounaise inclus.",
+      cta: "Voir les cartes graphiques",
+      href: "/catalogue/cartes-graphiques?dispo=1",
+      image: gpu?.image_url ?? null,
+      tone: "violet",
+    },
+    {
+      id: "config",
+      kicker: "Compatibilité vérifiée",
+      title: "La config du moment, prête à monter",
+      text: "Processeur, carte mère, mémoire, carte graphique et alimentation qui vont ensemble.",
+      cta: "Voir la config",
+      href: "#config",
+      image: null,
+      tone: "slate",
+    },
+    {
+      id: "cm-stockage",
+      kicker: "Légers à expédier",
+      title: "SSD et mémoire : les meilleurs prix livrés",
+      text: "Les petites pièces voyagent à moindre coût : idéal pour faire évoluer votre PC.",
+      cta: "Voir le stockage",
+      href: "/catalogue/stockage?dispo=1",
+      image: ssd?.image_url ?? null,
+      tone: "ice",
+    },
+  ];
+}
 
 function bannersFrom(deals: Deal[], gpu: Product | undefined): Banner[] {
   const titles: Record<string, string> = {
@@ -61,19 +99,23 @@ function bannersFrom(deals: Deal[], gpu: Product | undefined): Banner[] {
 }
 
 export default async function HomePage() {
-  const [tree, categories] = await Promise.all([getCategoryTree(), getCategories()]);
-  const [deals, rails, smallPrices, covers, brands, gpus] = await Promise.all([
-    Promise.all(DEAL_CATEGORIES.map((c) => dealsIn(c))).then((l) => l.filter((d): d is Deal => d !== null)),
-    Promise.all(RAILS.map((r) => inStock(r.category, { minPriceCents: r.minEuros * 100, withImage: true }, 14))),
-    inStock(null, { withImage: true, minPriceCents: 500, maxPriceCents: 2000 }, 16),
+  const [tree, categories, market] = await Promise.all([getCategoryTree(), getCategories(), getMarket()]);
+  const cm = market === "cm";
+  const [deals, rails, smallPrices, covers, brands, gpus, ssds] = await Promise.all([
+    cm
+      ? Promise.resolve([] as Deal[])
+      : Promise.all(DEAL_CATEGORIES.map((c) => dealsIn(c))).then((l) => l.filter((d): d is Deal => d !== null)),
+    Promise.all(RAILS.map((r) => inStock(r.category, { minPriceCents: r.minEuros * 100, withImage: true, market }, 14))),
+    inStock(null, { withImage: true, minPriceCents: 500, maxPriceCents: 2000, market }, 16),
     Promise.all(
       categories.map(async (c) => {
-        const list = await inStock(c.slug, { minPriceCents: (COVER_MIN_EUROS[c.slug] ?? 10) * 100, withImage: true }, 5);
+        const list = await inStock(c.slug, { minPriceCents: (COVER_MIN_EUROS[c.slug] ?? 10) * 100, withImage: true, market }, 5);
         return [c.slug, list[Math.min(2, list.length - 1)] ?? null] as [string, Product | null];
       }),
     ),
     getTopBrands(28),
-    inStock("cartes-graphiques", { withImage: true, minPriceCents: 40000 }, 5),
+    inStock("cartes-graphiques", { withImage: true, minPriceCents: 40000, market }, 5),
+    cm ? inStock("stockage", { withImage: true, subcategory: "ssd-nvme", minPriceCents: 6000, market }, 5) : Promise.resolve([]),
   ]);
   const coverBySlug = new Map(covers);
 
@@ -87,23 +129,10 @@ export default async function HomePage() {
         <aside className="home-aside">
           <SideNav tree={tree} title="Tous les rayons" />
         </aside>
-        <HeroBanners banners={bannersFrom(deals, gpus[0])} />
+        <HeroBanners banners={cm ? cmBanners(gpus[0], ssds[0]) : bannersFrom(deals, gpus[0])} />
       </div>
 
-      <div className="wrap promise-strip">
-        <p>
-          <strong>Livraison offerte</strong> dès {formatPrice(FREE_SHIPPING_CENTS)}
-        </p>
-        <p>
-          <strong>14 jours</strong> pour changer d&apos;avis
-        </p>
-        <p>
-          <strong>Garantie 2 ans</strong> sur tout le catalogue
-        </p>
-        <p>
-          <strong>Paiement sécurisé</strong> par Stripe
-        </p>
-      </div>
+      <PromiseStrip market={market} />
 
       {dealItems.length > 0 && (
         <section className="wrap section section-tight" aria-labelledby="deals-title">
@@ -172,7 +201,7 @@ export default async function HomePage() {
       {smallPrices.length > 0 && (
         <section className="wrap section section-tight" aria-labelledby="small-title">
           <div className="section-head">
-            <h2 id="small-title">Petits prix, moins de 20 €</h2>
+            <h2 id="small-title">{cm ? "Petits prix" : "Petits prix, moins de 20 €"}</h2>
             <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Tout voir</Link>
           </div>
           <ProductRail label="Petits prix">
@@ -203,5 +232,31 @@ export default async function HomePage() {
 
       <RecentlyViewed title="Reprendre là où vous en étiez" />
     </>
+  );
+}
+
+function PromiseStrip({ market }: { market: Market }) {
+  const items =
+    market === "cm"
+      ? [
+          ["Prix tout compris", "douane et TVA incluses"],
+          ["Livré à domicile", "à Douala et Yaoundé"],
+          ["Garantie 2 ans", "sur tout le catalogue"],
+          ["Mobile Money", "Orange Money et MTN MoMo"],
+        ]
+      : [
+          ["Livraison offerte", `dès ${formatPrice(FREE_SHIPPING_CENTS)}`],
+          ["14 jours", "pour changer d'avis"],
+          ["Garantie 2 ans", "sur tout le catalogue"],
+          ["Paiement sécurisé", "par Stripe"],
+        ];
+  return (
+    <div className="wrap promise-strip">
+      {items.map(([strong, rest]) => (
+        <p key={strong}>
+          <strong>{strong}</strong> {rest}
+        </p>
+      ))}
+    </div>
   );
 }

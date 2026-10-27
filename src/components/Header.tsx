@@ -3,9 +3,11 @@ import { getCategoryTree } from "@/lib/catalog";
 import { CartLink } from "./CartLink";
 import { CategoryDrawer } from "./CategoryDrawer";
 import { Logo } from "./Logo";
+import { MarketSwitch } from "./MarketSwitch";
+import { getMarket } from "@/lib/market-server";
 
 export async function Header() {
-  const tree = await getCategoryTree();
+  const [tree, market] = await Promise.all([getCategoryTree(), getMarket()]);
   return (
     <header className="site-header">
       <a href="#contenu" className="skip-link">
@@ -24,7 +26,8 @@ export async function Header() {
             Rechercher
           </button>
         </form>
-        <nav className="header-actions" aria-label="Compte et panier">
+        <nav className="header-actions" aria-label="Pays, compte et panier">
+          <MarketSwitch />
           <Link href="/connexion" className="header-link">
             Se connecter
           </Link>
@@ -35,9 +38,11 @@ export async function Header() {
         <div className="wrap header-sub-row">
           <CategoryDrawer tree={tree} />
           <nav aria-label="Raccourcis" className="header-shortcuts">
-            <Link href="/catalogue?promo=1" className="shortcut-deal">
-              Offres du moment
-            </Link>
+            {market === "fr" && (
+              <Link href="/catalogue?promo=1" className="shortcut-deal">
+                Offres du moment
+              </Link>
+            )}
             <Link href="/#config">Config du moment</Link>
             <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Petits prix</Link>
             <Link href="/catalogue/cartes-graphiques?dispo=1">Cartes graphiques</Link>

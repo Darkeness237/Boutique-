@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { effectivePrice, type Product } from "./product";
+import type { Product } from "./product";
+import { unitPrice, type Market } from "./market";
 
 export const MAX_QTY = 10;
 const MAX_LINES = 50;
@@ -29,13 +30,18 @@ export function parseCart(raw: unknown): CartLine[] {
   }).slice(0, MAX_LINES);
 }
 
-export function priceCart(lines: CartLine[], products: Product[]): { lines: PricedLine[]; subtotalCents: number } {
+export function priceCart(
+  lines: CartLine[],
+  products: Product[],
+  market: Market = "fr",
+): { lines: PricedLine[]; subtotalCents: number } {
   const byId = new Map(products.map((p) => [String(p.id), p]));
   const priced: PricedLine[] = [];
   for (const line of lines) {
     const product = byId.get(line.id);
     if (!product) continue;
-    priced.push({ product, qty: line.qty, totalCents: effectivePrice(product) * line.qty });
+    // Au Cameroun, montants en francs CFA ; en France, en centimes d'euro.
+    priced.push({ product, qty: line.qty, totalCents: unitPrice(product, market) * line.qty });
   }
   return { lines: priced, subtotalCents: priced.reduce((s, l) => s + l.totalCents, 0) };
 }

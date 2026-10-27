@@ -2,16 +2,18 @@ import Link from "next/link";
 import { displayName, getCategories } from "@/lib/catalog";
 import { pickBuild } from "@/lib/build";
 import { checkBuild, estimatedWatts } from "@/lib/compat";
-import { formatPrice } from "@/lib/format";
+import { formatMoney, unitPrice } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
 import { AddBuildButton } from "./AddBuildButton";
 
 // Config composée à partir du stock réel ; les contrôles sont calculés, pas écrits à la main.
 export async function BuildPanel() {
-  const [parts, categories] = await Promise.all([pickBuild(), getCategories()]);
+  const market = await getMarket();
+  const [parts, categories] = await Promise.all([pickBuild(market), getCategories()]);
   if (!parts) return null;
 
   const checks = checkBuild(parts);
-  const total = parts.reduce((s, p) => s + p.price_cents, 0);
+  const total = parts.reduce((s, p) => s + unitPrice(p, market), 0);
   const allOk = checks.every((c) => c.ok);
 
   return (
@@ -27,7 +29,7 @@ export async function BuildPanel() {
             <Link href={`/produit/${p.slug}`} className="bench-name">
               {p.brand} {displayName(p)}
             </Link>
-            <span className="bench-price">{formatPrice(p.price_cents)}</span>
+            <span className="bench-price">{formatMoney(market, unitPrice(p, market))}</span>
           </li>
         ))}
       </ol>
@@ -46,7 +48,7 @@ export async function BuildPanel() {
       <footer className="bench-foot">
         <p>
           <span className="bench-total-label">Total</span>
-          <span className="bench-total">{formatPrice(total)}</span>
+          <span className="bench-total">{formatMoney(market, total)}</span>
         </p>
         <AddBuildButton ids={parts.map((p) => String(p.id))} disabled={!allOk} />
       </footer>

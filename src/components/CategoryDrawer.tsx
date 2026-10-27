@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { CategoryNode } from "@/lib/catalog";
+import { useMarket } from "./MarketProvider";
 
 // Menu latéral « Toutes les catégories » : un tiroir qui glisse depuis la gauche,
 // avec les sous-catégories en accordéon. Échap ou un clic à côté le ferment.
@@ -13,6 +14,7 @@ export function CategoryDrawer({ tree }: { tree: CategoryNode[] }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const market = useMarket();
 
   // Toute navigation referme le menu.
   useEffect(() => setOpen(false), [pathname]);
@@ -68,11 +70,13 @@ export function CategoryDrawer({ tree }: { tree: CategoryNode[] }) {
           </div>
           <nav aria-label="Catégories">
             <ul className="drawer-list">
-              <li>
-                <Link href="/catalogue?promo=1" className="drawer-link drawer-deal">
-                  Offres du moment
-                </Link>
-              </li>
+              {market === "fr" && (
+                <li>
+                  <Link href="/catalogue?promo=1" className="drawer-link drawer-deal">
+                    Offres du moment
+                  </Link>
+                </li>
+              )}
               {tree.map((c) => {
                 const isOpen = expanded === c.slug;
                 return (
