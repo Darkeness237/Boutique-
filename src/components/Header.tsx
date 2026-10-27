@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { categories } from "@/lib/catalog";
+import { getCategories } from "@/lib/catalog";
 import { CartLink } from "./CartLink";
 import { Logo } from "./Logo";
 
-export function Header() {
+export async function Header() {
+  const categories = await getCategories();
   return (
     <header className="site-header">
       <a href="#contenu" className="skip-link">

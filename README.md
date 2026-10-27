@@ -23,7 +23,20 @@ npm run dev        # http://localhost:3000
 | Connexion / création de compte (interface seulement) | `/connexion`, `/inscription` |
 | Mentions légales, CGV, confidentialité (modèles à compléter) | `/mentions-legales`, `/cgv`, `/confidentialite` |
 
-Le catalogue est un fichier de démonstration (`src/lib/catalog.ts`) qui sera remplacé par Supabase.
+Le catalogue vient de **Supabase** (projet `silicium`, région Paris), alimenté par les fichiers tarifs des fournisseurs.
+
+## Importer un fichier fournisseur
+
+```bash
+node --env-file=.env.local --env-file=/chemin/hors/du/projet/import.env \
+  scripts/import-fournisseur.mjs 1fotrade 1fotrade_price.csv
+```
+
+`import.env` contient `IMPORT_TOKEN` : gardez-le **hors du dossier du projet**. Le script filtre les familles PC et gaming,
+bloque les prix aberrants et envoie le tout à la base. La base choisit la meilleure offre par EAN (en stock, prix, délai)
+et calcule le prix de vente selon les marges de `docs/strategie-prix.md`.
+
+Le schéma est dans `supabase/migrations/`. Les prix d'achat ne sont lisibles par personne avec la clé publique.
 
 ## Sécurité déjà en place
 

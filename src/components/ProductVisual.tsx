@@ -1,8 +1,6 @@
-import type { CategorySlug } from "@/lib/catalog";
-
 // Schémas au trait de chaque type de pièce, en attendant les vraies photos produit.
 // Ils restent volontairement techniques : on montre une pièce, pas une ambiance.
-const drawings: Record<CategorySlug, React.ReactNode> = {
+const drawings: Record<string, React.ReactNode> = {
   processeurs: (
     <>
       <rect x="35" y="20" width="50" height="50" rx="3" />
@@ -78,6 +76,20 @@ const drawings: Record<CategorySlug, React.ReactNode> = {
       <rect x="28" y="10" width="64" height="50" rx="2" />
     </>
   ),
+  ecrans: (
+    <>
+      <rect x="14" y="12" width="92" height="54" rx="3" />
+      <rect x="20" y="18" width="80" height="42" rx="1" className="fill" />
+      <path d="M60 66v10M44 80h32" />
+    </>
+  ),
+  fauteuils: (
+    <>
+      <path d="M44 10h32c3 0 5 2 5 5v38H39V15c0-3 2-5 5-5z" />
+      <path d="M34 53h52v8H34zM60 61v14M44 82l16-7 16 7M34 40v13M86 40v13" />
+      <rect x="50" y="18" width="20" height="10" rx="2" className="fill" />
+    </>
+  ),
   peripheriques: (
     <>
       <path d="M60 12c-14 0-22 12-22 30v14c0 13 9 22 22 22s22-9 22-22V42c0-18-8-30-22-30z" />
@@ -87,11 +99,11 @@ const drawings: Record<CategorySlug, React.ReactNode> = {
   ),
 };
 
-export function ProductVisual({ category, className }: { category: CategorySlug; className?: string }) {
+export function ProductVisual({ category, className }: { category: string; className?: string }) {
   return (
     <svg viewBox="0 0 120 90" className={`product-visual ${className ?? ""}`} aria-hidden="true">
       <g fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        {drawings[category]}
+        {drawings[category] ?? drawings.boitiers}
       </g>
     </svg>
   );

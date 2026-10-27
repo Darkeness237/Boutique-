@@ -1,38 +1,27 @@
 import { z } from "zod";
-import { brands, type Product } from "./catalog";
+import type { Sort } from "./catalog";
 
-export const SORTS = {
+export const SORTS: Record<Sort, string> = {
   pertinence: "Pertinence",
   "prix-croissant": "Prix croissant",
   "prix-decroissant": "Prix décroissant",
-} as const;
-
-type Sort = keyof typeof SORTS;
+};
 
 const one = (v: unknown) => (Array.isArray(v) ? v[0] : v);
 const many = (v: unknown) => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
 
-// Les paramètres d'URL sont des entrées utilisateur : on les valide et on ne garde
-// que des valeurs connues (allowlist), sans jamais lever d'erreur pour une URL bricolée.
+// Les paramètres d'URL sont des entrées utilisateur : on les valide et on ne garde que des
+// valeurs connues (allowlist), sans jamais lever d'erreur pour une URL bricolée.
 const schema = z.object({
   q: z.preprocess(one, z.string().trim().max(80).optional().catch(undefined)),
-  marque: z.preprocess(
-    many,
-    z
-      .array(z.string())
-      .max(20)
-      .transform((list) => list.filter((b) => brands.includes(b)))
-      .catch([]),
-  ),
-  prixMax: z.preprocess(one, z.coerce.number().int().min(1).max(10000).optional().catch(undefined)),
+  marque: z.preprocess(many, z.array(z.string().max(80)).max(20).catch([])),
+  prixMax: z.preprocess(one, z.coerce.number().int().min(1).max(20000).optional().catch(undefined)),
   dispo: z.preprocess(one, z.literal("1").optional().catch(undefined)),
   tri: z.preprocess(
     one,
-    z
-      .enum(Object.keys(SORTS) as [Sort, ...Sort[]])
-      .optional()
-      .catch(undefined),
+    z.enum(Object.keys(SORTS) as [Sort, ...Sort[]]).optional().catch(undefined),
   ),
+  page: z.preprocess(one, z.coerce.number().int().min(1).max(500).optional().catch(undefined)),
 });
 
 export type Filters = {
@@ -41,36 +30,33 @@ export type Filters = {
   prixMax?: number;
   dispo: boolean;
   tri: Sort;
+  page: number;
 };
 
-export function parseFilters(params: Record<string, string | string[] | undefined>): Filters {
+export function parseFilters(
+  params: Record<string, string | string[] | undefined>,
+  allowedBrands: string[],
+): Filters {
   const parsed = schema.parse(params);
   return {
     q: parsed.q || undefined,
-    marque: parsed.marque,
+    marque: parsed.marque.filter((b) => allowedBrands.includes(b)),
     prixMax: parsed.prixMax,
     dispo: parsed.dispo === "1",
     tri: parsed.tri ?? "pertinence",
+    page: parsed.page ?? 1,
   };
 }
 
-function normalize(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-export function applyFilters(list: Product[], f: Filters): Product[] {
-  const terms = f.q ? normalize(f.q).split(/\s+/).filter(Boolean) : [];
-  const result = list.filter((p) => {
-    if (f.marque.length && !f.marque.includes(p.brand)) return false;
-    if (f.prixMax && p.priceCents > f.prixMax * 100) return false;
-    if (f.dispo && p.stock <= 0) return false;
-    if (terms.length) {
-      const haystack = normalize(`${p.brand} ${p.name} ${p.keySpec} ${p.socket ?? ""}`);
-      if (!terms.every((t) => haystack.includes(t))) return false;
-    }
-    return true;
-  });
-  if (f.tri === "prix-croissant") result.sort((a, b) => a.priceCents - b.priceCents);
-  if (f.tri === "prix-decroissant") result.sort((a, b) => b.priceCents - a.priceCents);
-  return result;
+/** Reconstruit l'URL d'une page de résultats en gardant les filtres actifs. */
+export function filtersToQuery(f: Filters, page: number): string {
+  const p = new URLSearchParams();
+  if (f.q) p.set("q", f.q);
+  for (const b of f.marque) p.append("marque", b);
+  if (f.prixMax) p.set("prixMax", String(f.prixMax));
+  if (f.dispo) p.set("dispo", "1");
+  if (f.tri !== "pertinence") p.set("tri", f.tri);
+  if (page > 1) p.set("page", String(page));
+  const s = p.toString();
+  return s ? `?${s}` : "";
 }

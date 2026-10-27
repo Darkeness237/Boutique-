@@ -4,48 +4,57 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductVisual } from "@/components/ProductVisual";
-import { getCategory, getProductBySlug, products, type Product } from "@/lib/catalog";
+import { displayName, getCategory, getProductBySlug, inStock, type Product } from "@/lib/catalog";
+import { estimatedPartWatts, recommendedPsuWatts } from "@/lib/compat";
 import { formatPrice, stockLabel } from "@/lib/format";
+import { PRICE_NOTE } from "@/lib/legal";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = getProductBySlug((await params).slug);
-  return product
-    ? { title: `${product.brand} ${product.name}`, description: product.description }
-    : {};
+  const product = await getProductBySlug((await params).slug);
+  return product ? { title: `${product.brand} ${displayName(product)}` } : {};
 }
 
-/** Les pièces qui fonctionnent avec celle-ci, pour guider l'achat suivant. */
-function compatibleWith(product: Product): { text: string; items: Product[] } | null {
-  if (product.category === "processeurs") {
-    const items = products.filter((p) => p.category === "cartes-meres" && p.socket === product.socket);
-    return { text: `Cartes mères ${product.socket} compatibles`, items };
+/** Les pièces en stock qui fonctionnent avec celle-ci, pour guider l'achat suivant. */
+async function compatibleWith(p: Product): Promise<{ text: string; items: Product[] } | null> {
+  if (p.category_slug === "processeurs" && p.socket) {
+    return { text: `Cartes mères ${p.socket} en stock`, items: await inStock("cartes-meres", { socket: p.socket }, 4) };
   }
-  if (product.category === "cartes-meres") {
-    const items = products.filter((p) => p.category === "processeurs" && p.socket === product.socket);
-    return { text: `Processeurs ${product.socket} compatibles`, items };
+  if (p.category_slug === "cartes-meres" && p.socket) {
+    const items = await inStock("processeurs", { socket: p.socket }, 4);
+    return { text: `Processeurs ${p.socket} en stock`, items };
   }
-  if (product.category === "memoire") {
-    const items = products.filter((p) => p.category === "cartes-meres" && p.memory === product.memory);
-    return { text: `Cartes mères ${product.memory} compatibles`, items };
+  if (p.category_slug === "memoire" && p.memory) {
+    return { text: `Cartes mères ${p.memory} en stock`, items: await inStock("cartes-meres", { memory: p.memory }, 4) };
   }
-  if (product.category === "cartes-graphiques" && product.watts) {
-    // Carte graphique + processeur haut de gamme + reste de la config, avec 30 % de marge.
-    const needed = Math.ceil(((product.watts + 125 + 75) * 1.3) / 50) * 50;
-    const items = products.filter((p) => p.category === "alimentations" && (p.psuWatts ?? 0) >= needed);
-    return { text: `Alimentations de ${needed} W ou plus conseillées`, items };
+  if (p.category_slug === "cartes-graphiques") {
+    // Avec un processeur haut de gamme, pour ne pas sous-dimensionner.
+    const needed = recommendedPsuWatts([p, { category_slug: "processeurs", name: "Ryzen 9" }]);
+    const items = (await inStock("alimentations")).filter((a) => (a.psu_watts ?? 0) >= needed).slice(0, 4);
+    return { text: `Alimentations de ${needed} W ou plus en stock`, items };
   }
   return null;
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = getProductBySlug((await params).slug);
+  const product = await getProductBySlug((await params).slug);
   if (!product) notFound();
 
-  const category = getCategory(product.category);
-  const stock = stockLabel(product.stock);
-  const compat = compatibleWith(product);
+  const [category, compat] = await Promise.all([getCategory(product.category_slug), compatibleWith(product)]);
+  const stock = stockLabel(product.in_stock, product.lead_days);
+  const name = displayName(product);
+  const watts = estimatedPartWatts(product);
+
+  const specs: [string, string][] = [
+    ["Marque", product.brand],
+    ["Désignation", product.name],
+    ...(product.socket ? [["Socket", product.socket] as [string, string]] : []),
+    ...(product.memory ? [["Mémoire", product.memory] as [string, string]] : []),
+    ...(product.psu_watts ? [["Puissance", `${product.psu_watts} W`] as [string, string]] : []),
+    ...(watts ? [["Consommation typique", `${watts} W (estimation)`] as [string, string]] : []),
+    ["Disponibilité", stock.text],
+  ];
 
   return (
     <>
@@ -59,36 +68,39 @@ export default async function ProductPage({ params }: Props) {
               <Link href={`/catalogue/${category.slug}`}>{category.name}</Link>
             </li>
           )}
-          <li aria-current="page">{product.name}</li>
+          <li aria-current="page">{name}</li>
         </ol>
       </div>
 
       <div className="wrap product-page">
         <div>
           <div className="product-hero-visual">
-            <ProductVisual category={product.category} />
+            <ProductVisual category={product.category_slug} />
           </div>
         </div>
 
         <div className="product-info">
           <p className="product-brand">{product.brand}</p>
-          <h1>{product.name}</h1>
-          <p className="product-desc">{product.description}</p>
+          <h1>{name}</h1>
 
           <div className="buy-box">
-            <p className="price">{formatPrice(product.priceCents)}</p>
+            <p className="price">{formatPrice(product.price_cents)}</p>
             <p className={`stock stock-${stock.tone}`}>{stock.text}</p>
             <div>
-              <AddToCartButton productId={product.id} productName={product.name} disabled={product.stock <= 0} />
+              <AddToCartButton
+                productId={String(product.id)}
+                productName={`${product.brand} ${name}`}
+                disabled={!product.in_stock}
+              />
             </div>
-            <p className="buy-note">TVA incluse. Retour gratuit sous 14 jours, garantie légale de 2 ans.</p>
+            <p className="buy-note">{PRICE_NOTE}. Retour gratuit sous 14 jours, garantie légale de 2 ans.</p>
           </div>
 
           <section className="bench spec-sheet" aria-labelledby="specs-title">
             <h2 id="specs-title">Fiche technique</h2>
             <table className="spec-table">
               <tbody>
-                {product.specs.map(([label, value]) => (
+                {specs.map(([label, value]) => (
                   <tr key={label}>
                     <th scope="row">{label}</th>
                     <td>{value}</td>
@@ -96,20 +108,6 @@ export default async function ProductPage({ params }: Props) {
                 ))}
               </tbody>
             </table>
-            {compat && compat.items.length > 0 && (
-              <p className="compat-note">
-                {compat.text} :{" "}
-                {compat.items.map((p, i) => (
-                  <span key={p.id}>
-                    {i > 0 && ", "}
-                    <Link href={`/produit/${p.slug}`}>
-                      {p.brand} {p.name}
-                    </Link>
-                  </span>
-                ))}
-                .
-              </p>
-            )}
           </section>
         </div>
       </div>
@@ -120,7 +118,7 @@ export default async function ProductPage({ params }: Props) {
             <h2 id="compat-title">{compat.text}</h2>
           </div>
           <div className="product-grid">
-            {compat.items.slice(0, 4).map((p) => (
+            {compat.items.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

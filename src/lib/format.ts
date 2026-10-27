@@ -4,8 +4,8 @@ export function formatPrice(cents: number): string {
   return euro.format(cents / 100);
 }
 
-export function stockLabel(stock: number): { text: string; tone: "ok" | "low" | "out" } {
-  if (stock <= 0) return { text: "En rupture", tone: "out" };
-  if (stock <= 5) return { text: `Plus que ${stock} en stock`, tone: "low" };
-  return { text: "En stock, expédié sous 24 h", tone: "ok" };
+export function stockLabel(inStock: boolean, leadDays: number): { text: string; short: string; tone: "ok" | "out" } {
+  if (!inStock) return { text: "Sur commande, nous consulter", short: "Sur commande", tone: "out" };
+  const delay = leadDays <= 1 ? "expédié sous 24 h" : `expédié sous ${leadDays} jours ouvrés`;
+  return { text: `En stock, ${delay}`, short: "En stock", tone: "ok" };
 }

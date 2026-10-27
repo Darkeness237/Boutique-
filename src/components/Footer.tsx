@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
+import { PRICE_NOTE } from "@/lib/legal";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -40,7 +41,9 @@ export function Footer() {
               </li>
             </ul>
           </nav>
-          <p className="footer-copy">© {new Date().getFullYear()} Silicium</p>
+          <p className="footer-copy">
+            © {new Date().getFullYear()} Silicium · {PRICE_NOTE}
+          </p>
         </div>
       </div>
     </footer>

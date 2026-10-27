@@ -1,21 +1,28 @@
 import Link from "next/link";
-import { products, productsIn, type Category } from "@/lib/catalog";
-import { applyFilters, parseFilters, SORTS } from "@/lib/filters";
+import { getBrands, PAGE_SIZE, searchProducts, type Category } from "@/lib/catalog";
+import { filtersToQuery, parseFilters, SORTS } from "@/lib/filters";
 import { ProductCard } from "./ProductCard";
 
-export function CatalogView({
+export async function CatalogView({
   category,
   searchParams,
 }: {
   category?: Category;
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const base = category ? productsIn(category.slug) : products;
-  const filters = parseFilters(searchParams);
-  const results = applyFilters(base, filters);
-  const brandsHere = [...new Set(base.map((p) => p.brand))].sort((a, b) => a.localeCompare(b, "fr"));
+  const brands = await getBrands(category?.slug);
+  const filters = parseFilters(searchParams, brands);
+  const { items, total } = await searchProducts({
+    category: category?.slug,
+    q: filters.q,
+    brands: filters.marque,
+    maxPriceCents: filters.prixMax ? filters.prixMax * 100 : undefined,
+    inStockOnly: filters.dispo,
+    sort: filters.tri,
+    page: filters.page,
+  });
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const action = category ? `/catalogue/${category.slug}` : "/catalogue";
-
   const title = filters.q ? `Résultats pour « ${filters.q} »` : category ? category.name : "Tout le catalogue";
 
   return (
@@ -55,15 +62,10 @@ export function CatalogView({
               ))}
             </select>
           </div>
-          <fieldset>
-            <legend>Marque</legend>
-            {brandsHere.map((b) => (
-              <label key={b} className="check-row">
-                <input type="checkbox" name="marque" value={b} defaultChecked={filters.marque.includes(b)} />
-                {b}
-              </label>
-            ))}
-          </fieldset>
+          <label className="check-row">
+            <input type="checkbox" name="dispo" value="1" defaultChecked={filters.dispo} />
+            En stock uniquement
+          </label>
           <div>
             <label className="field-label" htmlFor="prixMax">
               Prix maximum (€)
@@ -74,15 +76,22 @@ export function CatalogView({
               type="number"
               inputMode="numeric"
               min={1}
-              max={10000}
+              max={20000}
               step={1}
               defaultValue={filters.prixMax}
             />
           </div>
-          <label className="check-row">
-            <input type="checkbox" name="dispo" value="1" defaultChecked={filters.dispo} />
-            En stock uniquement
-          </label>
+          <fieldset>
+            <legend>Marque</legend>
+            <div className="brand-list">
+              {brands.map((b) => (
+                <label key={b} className="check-row">
+                  <input type="checkbox" name="marque" value={b} defaultChecked={filters.marque.includes(b)} />
+                  {b}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="filters-actions">
             <button type="submit" className="btn btn-dark btn-sm">
               Appliquer
@@ -93,14 +102,33 @@ export function CatalogView({
 
         <div>
           <p className="result-count" role="status">
-            {results.length} produit{results.length > 1 ? "s" : ""}
+            {total.toLocaleString("fr-FR")} produit{total > 1 ? "s" : ""}
+            {pages > 1 && ` · page ${filters.page} sur ${pages}`}
           </p>
-          {results.length > 0 ? (
-            <div className="product-grid">
-              {results.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+          {items.length > 0 ? (
+            <>
+              <div className="product-grid">
+                {items.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+              {pages > 1 && (
+                <nav className="pagination" aria-label="Pages de résultats">
+                  {filters.page > 1 ? (
+                    <Link href={`${action}${filtersToQuery(filters, filters.page - 1)}`} className="btn btn-quiet btn-sm">
+                      Page précédente
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                  {filters.page < pages && (
+                    <Link href={`${action}${filtersToQuery(filters, filters.page + 1)}`} className="btn btn-quiet btn-sm">
+                      Page suivante
+                    </Link>
+                  )}
+                </nav>
+              )}
+            </>
           ) : (
             <div className="empty">
               <h2>Aucun produit ne correspond</h2>

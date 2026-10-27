@@ -1,33 +1,33 @@
 import Link from "next/link";
-import { getProductById, categories, type Product } from "@/lib/catalog";
+import { displayName, getCategories } from "@/lib/catalog";
+import { pickBuild } from "@/lib/build";
 import { checkBuild, estimatedWatts } from "@/lib/compat";
 import { formatPrice } from "@/lib/format";
 import { AddBuildButton } from "./AddBuildButton";
 
-// Config d'exemple affichée à l'accueil. Les contrôles sont calculés, pas écrits à la main :
-// changer une pièce ici met à jour les vérifications.
-const BUILD_IDS = ["cpu-9800x3d", "mb-b850f", "ram-vengeance-32", "gpu-5070", "psu-rm850x"];
+// Config composée à partir du stock réel ; les contrôles sont calculés, pas écrits à la main.
+export async function BuildPanel() {
+  const [parts, categories] = await Promise.all([pickBuild(), getCategories()]);
+  if (!parts) return null;
 
-export function BuildPanel() {
-  const parts = BUILD_IDS.map(getProductById).filter((p): p is Product => Boolean(p));
   const checks = checkBuild(parts);
-  const total = parts.reduce((s, p) => s + p.priceCents, 0);
+  const total = parts.reduce((s, p) => s + p.price_cents, 0);
   const allOk = checks.every((c) => c.ok);
 
   return (
     <section className="bench" aria-labelledby="bench-title">
       <header className="bench-head">
-        <h2 id="bench-title">Config 1440p, vérifiée</h2>
+        <h2 id="bench-title">Config du moment, vérifiée</h2>
         <p>{estimatedWatts(parts)} W en charge</p>
       </header>
       <ol className="bench-parts">
         {parts.map((p) => (
           <li key={p.id}>
-            <span className="bench-cat">{categories.find((c) => c.slug === p.category)?.name}</span>
+            <span className="bench-cat">{categories.find((c) => c.slug === p.category_slug)?.name}</span>
             <Link href={`/produit/${p.slug}`} className="bench-name">
-              {p.brand} {p.name}
+              {p.brand} {displayName(p)}
             </Link>
-            <span className="bench-price">{formatPrice(p.priceCents)}</span>
+            <span className="bench-price">{formatPrice(p.price_cents)}</span>
           </li>
         ))}
       </ol>
@@ -48,7 +48,7 @@ export function BuildPanel() {
           <span className="bench-total-label">Total</span>
           <span className="bench-total">{formatPrice(total)}</span>
         </p>
-        <AddBuildButton ids={parts.map((p) => p.id)} disabled={!allOk} />
+        <AddBuildButton ids={parts.map((p) => String(p.id))} disabled={!allOk} />
       </footer>
     </section>
   );

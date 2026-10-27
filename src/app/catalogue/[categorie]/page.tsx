@@ -9,12 +9,12 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = getCategory((await params).categorie);
+  const category = await getCategory((await params).categorie);
   return category ? { title: category.name, description: category.hint } : {};
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const category = getCategory((await params).categorie);
+  const category = await getCategory((await params).categorie);
   if (!category) notFound();
   return <CatalogView category={category} searchParams={await searchParams} />;
 }

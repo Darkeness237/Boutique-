@@ -1281,3 +1281,20 @@ svg {
     animation: none !important;
   }
 }
+
+/* Catalogue réel : listes longues -------------------------------------- */
+
+.brand-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 6px;
+  border-block: 1px solid var(--line);
+  padding-block: 6px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+}

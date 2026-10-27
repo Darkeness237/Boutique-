@@ -1,27 +1,43 @@
 import Link from "next/link";
-import type { Product } from "@/lib/catalog";
+import { displayName, type Product } from "@/lib/catalog";
 import { formatPrice, stockLabel } from "@/lib/format";
 import { ProductVisual } from "./ProductVisual";
 import { AddToCartButton } from "./AddToCartButton";
 
+/** Ce qu'on peut dire d'utile en une ligne, avec les seules données disponibles. */
+function keySpec(p: Product): string | null {
+  if (p.socket && p.memory) return `${p.socket} · ${p.memory}`;
+  if (p.socket) return `Socket ${p.socket}`;
+  if (p.memory) return p.memory;
+  if (p.psu_watts) return `${p.psu_watts} W`;
+  return null;
+}
+
 export function ProductCard({ product }: { product: Product }) {
-  const stock = stockLabel(product.stock);
+  const stock = stockLabel(product.in_stock, product.lead_days);
+  const spec = keySpec(product);
+  const name = displayName(product);
   return (
     <article className="product-card">
       <Link href={`/produit/${product.slug}`} className="product-card-link">
         <div className="product-card-visual">
-          <ProductVisual category={product.category} />
+          <ProductVisual category={product.category_slug} />
         </div>
         <p className="product-card-brand">{product.brand}</p>
-        <h3 className="product-card-name">{product.name}</h3>
-        <p className="product-card-spec">{product.keySpec}</p>
+        <h3 className="product-card-name">{name}</h3>
+        {spec && <p className="product-card-spec">{spec}</p>}
       </Link>
       <div className="product-card-foot">
         <div>
-          <p className="price">{formatPrice(product.priceCents)}</p>
-          <p className={`stock stock-${stock.tone}`}>{stock.tone === "ok" ? "En stock" : stock.text}</p>
+          <p className="price">{formatPrice(product.price_cents)}</p>
+          <p className={`stock stock-${stock.tone}`}>{stock.short}</p>
         </div>
-        <AddToCartButton productId={product.id} productName={product.name} disabled={product.stock <= 0} compact />
+        <AddToCartButton
+          productId={String(product.id)}
+          productName={`${product.brand} ${name}`}
+          disabled={!product.in_stock}
+          compact
+        />
       </div>
     </article>
   );
