@@ -67,6 +67,7 @@ async function toOrder(session: Stripe.Checkout.Session) {
     },
     stripe_session_id: session.id,
     stripe_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : null,
+    user_id: session.metadata?.user_id ?? null,
     items: lineItems.data.map((li) => {
       const product = li.price?.product;
       const productId = product && typeof product === "object" && "metadata" in product ? product.metadata?.product_id : null;

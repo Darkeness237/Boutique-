@@ -5,9 +5,10 @@ import { CategoryDrawer } from "./CategoryDrawer";
 import { Logo } from "./Logo";
 import { MarketSwitch } from "./MarketSwitch";
 import { getMarket } from "@/lib/market-server";
+import { hasSessionCookie } from "@/lib/supabase-server";
 
 export async function Header() {
-  const [tree, market] = await Promise.all([getCategoryTree(), getMarket()]);
+  const [tree, market, signedIn] = await Promise.all([getCategoryTree(), getMarket(), hasSessionCookie()]);
   return (
     <header className="site-header">
       <a href="#contenu" className="skip-link">
@@ -28,8 +29,8 @@ export async function Header() {
         </form>
         <nav className="header-actions" aria-label="Pays, compte et panier">
           <MarketSwitch />
-          <Link href="/connexion" className="header-link">
-            Se connecter
+          <Link href={signedIn ? "/compte" : "/connexion"} className="header-link">
+            {signedIn ? "Mon compte" : "Se connecter"}
           </Link>
           <CartLink />
         </nav>

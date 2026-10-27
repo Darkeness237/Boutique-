@@ -20,6 +20,12 @@ export const metadata: Metadata = {
   description:
     "Processeurs, cartes graphiques, cartes mères et périphériques gaming. Compatibilité vérifiée sur chaque fiche, livraison en France et au Cameroun.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  openGraph: { siteName: "Silicium", locale: "fr_FR", type: "website" },
+  // Codes de validation de Google Search Console et Bing, à renseigner dans Netlify.
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
+    ...(process.env.BING_SITE_VERIFICATION ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } } : {}),
+  },
 };
 
 export const viewport: Viewport = {

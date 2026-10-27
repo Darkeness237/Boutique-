@@ -1,8 +1,9 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // CSP stricte avec un nonce par requête : seuls les scripts émis par Next.js
 // (qui reçoivent ce nonce) peuvent s'exécuter. Bloque l'essentiel des attaques XSS.
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV !== "production";
 
@@ -37,12 +38,42 @@ export function middleware(request: NextRequest) {
     requestHeaders.set("cookie", `${request.headers.get("cookie") ?? ""}; marche=${market}`.replace(/^; /, ""));
   }
 
+  // Client connecté : on rafraîchit sa session (jeton court) avant que la page la lise.
+  const refreshed = await refreshSession(request, requestHeaders, isDev);
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  for (const c of refreshed) response.cookies.set(c.name, c.value, c.options);
   response.headers.set("Content-Security-Policy", csp);
   if (market) {
     response.cookies.set("marche", market, { path: "/", maxAge: 31536000, sameSite: "lax", secure: !isDev });
   }
   return response;
+}
+
+type CookieToSet = { name: string; value: string; options: Parameters<NextResponse["cookies"]["set"]>[2] };
+
+async function refreshSession(request: NextRequest, requestHeaders: Headers, isDev: boolean): Promise<CookieToSet[]> {
+  if (!request.cookies.getAll().some((c) => /^sb-.+-auth-token/.test(c.name))) return [];
+  const out: CookieToSet[] = [];
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll: (list) => {
+        for (const { name, value, options } of list) {
+          request.cookies.set(name, value);
+          out.push({ name, value, options: { ...options, httpOnly: true } });
+        }
+      },
+    },
+    cookieOptions: { httpOnly: true, sameSite: "lax", secure: !isDev },
+  });
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Supabase injoignable : la page s'affiche quand même, sans session.
+  }
+  if (out.length) requestHeaders.set("cookie", request.cookies.toString());
+  return out;
 }
 
 function guessCountry(request: NextRequest): string | null {

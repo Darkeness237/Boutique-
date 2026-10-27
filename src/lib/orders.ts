@@ -18,6 +18,7 @@ export type PaidOrder = {
   shipping_address: Record<string, string | null>;
   stripe_session_id: string;
   stripe_payment_intent: string | null;
+  user_id: string | null;
   items: { product_id: number | null; name: string; qty: number; unit_price: number }[];
 };
 

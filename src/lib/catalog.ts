@@ -12,7 +12,7 @@ export { activePromo, displayName, effectivePrice } from "./product";
 
 // Une seule chaîne littérale : le client Supabase en déduit le type des lignes.
 export const PRODUCT_COLUMNS =
-  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max";
+  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max, ean";
 
 export const PAGE_SIZE = 24;
 

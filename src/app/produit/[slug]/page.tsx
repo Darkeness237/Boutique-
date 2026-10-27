@@ -19,12 +19,27 @@ import { deliveryRange, deliveryWindow } from "@/lib/delivery";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { formatPrice, stockLabel } from "@/lib/format";
 import { PRICE_NOTE } from "@/lib/legal";
+import { jsonForScript, productDescription, productJsonLd } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug((await params).slug);
-  return product ? { title: `${product.brand} ${displayName(product)}` } : {};
+  if (!product) return {};
+  const title = `${product.brand} ${displayName(product)}`;
+  const description = productDescription(product, 160);
+  return {
+    title,
+    description,
+    alternates: { canonical: `/produit/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `/produit/${product.slug}`,
+      ...(product.image_url ? { images: [{ url: product.image_url, width: 500, height: 500, alt: title }] } : {}),
+    },
+  };
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -69,6 +84,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <RecordView productId={String(product.id)} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonForScript(productJsonLd(product)) }} />
       <div className="wrap page-head page-head-tight">
         <ol className="breadcrumb" aria-label="Fil d'Ariane">
           <li>

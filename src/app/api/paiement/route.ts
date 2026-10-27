@@ -5,6 +5,7 @@ import { displayName, getProductsByIds } from "@/lib/catalog";
 import { effectivePrice } from "@/lib/product";
 import { MARKET_COOKIE, parseMarket } from "@/lib/market";
 import { INTEGRATION_ID, stripe } from "@/lib/stripe";
+import { currentUser } from "@/lib/supabase-server";
 
 const bodySchema = z.object({ lines: cartSchema.min(1) });
 
@@ -57,8 +58,12 @@ export async function POST(request: NextRequest) {
   const subtotal = products.reduce((s, p) => s + effectivePrice(p) * (qtyById.get(p.id) ?? 0), 0);
   const shipping = subtotal >= FREE_SHIPPING_CENTS ? 0 : SHIPPING_CENTS;
 
+  // Client connecté : e-mail pré-rempli et commande rattachée à son compte.
+  const user = await currentUser().catch(() => null);
+
   try {
     const session = await stripe().checkout.sessions.create({
+      ...(user?.email ? { customer_email: user.email } : {}),
       mode: "payment",
       locale: "fr",
       integration_identifier: INTEGRATION_ID,
@@ -90,7 +95,7 @@ export async function POST(request: NextRequest) {
       ],
       phone_number_collection: { enabled: true },
       custom_text: { submit: { message: "TVA non applicable, art. 293 B du CGI." } },
-      metadata: { market: "fr" },
+      metadata: { market: "fr", ...(user ? { user_id: user.id } : {}) },
       success_url: `${site}/commande/merci?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}/panier`,
     });

@@ -27,6 +27,8 @@ export type Product = {
   price_xaf: number | null;
   cm_days_min: number | null;
   cm_days_max: number | null;
+  /** Code-barres EAN (GTIN), public : sert aux données structurées et au flux Google Shopping. */
+  ean: string | null;
 };
 
 /** Promotion en cours (la date de fin est revérifiée ici, au cas où la base n'a pas encore été rafraîchie). */
