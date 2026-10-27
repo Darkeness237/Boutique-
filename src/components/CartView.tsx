@@ -106,7 +106,7 @@ export function CartView({ zones }: { zones: DeliveryZone[] }) {
                 </div>
                 {!product.in_stock && <p className="field-error">Plus en stock : retirez-le pour passer commande.</p>}
                 {product.in_stock && !isAvailableIn(product, market) && (
-                  <p className="field-error">Non livrable au Cameroun (trop volumineux) : retirez-le pour passer commande.</p>
+                  <p className="field-error">Non disponible au Cameroun pour le moment : retirez-le pour passer commande.</p>
                 )}
               </div>
               <p className="cart-line-total">{money(totalCents)}</p>

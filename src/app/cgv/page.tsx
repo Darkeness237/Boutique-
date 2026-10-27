@@ -42,8 +42,9 @@ export default function CgvPage() {
           ville et s&apos;affiche avant le paiement.
         </p>
         <p>
-          Conversion : 1 € = 655,957 FCFA (parité fixe). Délai indicatif : 2 à 4 semaines entre la commande et la
-          livraison, dédouanement compris. Les produits trop volumineux pour le fret aérien ne sont pas proposés.
+          Les produits expédiés au Cameroun sont vendus sans TVA française (exportation hors de l&apos;Union
+          européenne). Conversion : 1 € = 655,957 FCFA (parité fixe). Délai indicatif : 2 à 4 semaines entre la
+          commande et la livraison, dédouanement compris.
         </p>
         <p>
           Un produit défectueux ou non conforme à la livraison est échangé à nos frais. Conditions de retour pour

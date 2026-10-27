@@ -151,8 +151,7 @@ export default async function ProductPage({ params }: Props) {
           )}
           {market === "cm" && !available && (
             <p className="pdp-delivery">
-              Ce produit est trop volumineux pour être envoyé par avion à un prix raisonnable. Il n&apos;est pas proposé au
-              Cameroun pour le moment.
+              Ce produit n&apos;est pas disponible au Cameroun pour le moment.
             </p>
           )}
           <BuyBox

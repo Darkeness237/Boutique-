@@ -9,7 +9,7 @@ Le site vend en France (euros) et au Cameroun (francs CFA). Le pays est deviné 
 Prix **livré, tout compris** (décision : la douane est incluse, le client ne paie rien à l'arrivée) :
 
 ```
-valeur CAF  = prix France + fret (poids × tarif au kg + manutention) + assurance
+valeur CAF  = prix France hors TVA française + fret (poids × tarif au kg + manutention) + assurance
 droits      = CAF × (droits de douane + autres taxes)
 TVA         = (CAF + droits) × 19,25 %
 prix FCFA   = (CAF + droits + TVA + honoraires de dédouanement) × (1 + marge de sécurité) × 655,957
@@ -18,8 +18,21 @@ prix FCFA   = (CAF + droits + TVA + honoraires de dédouanement) × (1 + marge d
 
 La livraison à domicile est ajoutée **au panier**, selon la ville (`cm_delivery_zones`).
 
-Un produit dont le fret dépasse **la moitié de sa valeur** n'est pas proposé au Cameroun (grands
-boîtiers, grands écrans, fauteuils) : il reviendrait 2 à 4 fois son prix par avion.
+Aucun produit n'est exclu : tous ont un prix livré. Attention, par avion, les produits volumineux
+reviennent très cher (un boîtier à 62 € coûte environ 142 500 FCFA livré, un fauteuil plus de
+230 000 FCFA). Le tri se fera avec le transitaire (fret maritime pour les gros volumes ?).
+
+## TVA française
+
+Les marchandises exportées hors de l'Union européenne sont exonérées de TVA française : la valeur de
+base est donc le prix France **hors TVA** (`private.cm_params.goods_without_fr_vat = true`).
+
+**À faire confirmer par 1foTrade et un comptable.** En franchise de base (micro-entreprise non
+assujettie), vous payez la TVA sur vos achats sans pouvoir la récupérer. Acheter **sans TVA** des
+produits destinés à l'export passe en principe par le régime des achats en franchise (article 275
+du CGI), réservé aux exportateurs assujettis et soumis à justificatifs d'exportation. Si vous ne
+pouvez pas acheter hors taxe, remettre l'interrupteur à `false` : les prix FCFA incluront alors la
+TVA française payée à 1foTrade, sinon chaque vente au Cameroun vous coûterait ces 20 %.
 
 ## Paramètres à confirmer avec vos prestataires
 

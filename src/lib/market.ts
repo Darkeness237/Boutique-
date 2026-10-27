@@ -37,5 +37,7 @@ export function promoFor(p: Product, market: Market) {
 }
 
 export function priceNote(market: Market, vatNote: string): string {
-  return market === "cm" ? "Prix livré : transport, dédouanement et TVA camerounaise compris" : vatNote;
+  return market === "cm"
+    ? "Prix livré sans TVA française : transport, dédouanement et TVA camerounaise compris"
+    : vatNote;
 }
