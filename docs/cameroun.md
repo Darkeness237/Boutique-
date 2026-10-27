@@ -27,7 +27,8 @@ reviennent très cher (un boîtier à 62 € coûte environ 142 500 FCFA livré,
 Les marchandises exportées hors de l'Union européenne sont exonérées de TVA française : la valeur de
 base est donc le prix France **hors TVA** (`private.cm_params.goods_without_fr_vat = true`).
 
-**Confirmé par le gérant le 27 octobre 2026** : achats hors TVA pour l'export. Le justificatif
+**Confirmé le 27 octobre 2026 avec 1foTrade** : les produits expédiés au Cameroun sont achetés
+hors TVA (pas de 20 % payés à 1foTrade). Le justificatif
 d'exportation sera fourni par le transitaire, à conserver pour chaque envoi.
 
 Rappel du cadre : En franchise de base (micro-entreprise non
