@@ -8,6 +8,7 @@ import { formatMoney, isAvailableIn, priceNote, promoFor, unitPrice } from "@/li
 import { FREE_SHIPPING_CENTS, MAX_QTY, SHIPPING_CENTS, priceCart } from "@/lib/cart";
 import { PRICE_NOTE, TOTAL_LABEL } from "@/lib/legal";
 import { useCart } from "./CartProvider";
+import { CheckoutButton } from "./CheckoutButton";
 import { useMarket } from "./MarketProvider";
 import { ProductVisual } from "./ProductVisual";
 
@@ -143,17 +144,19 @@ export function CartView({ zones }: { zones: DeliveryZone[] }) {
           <span>{money(subtotalCents + shipping)}</span>
         </p>
         <p className="summary-note">{priceNote(market, PRICE_NOTE)}</p>
-        {/* Le paiement passera par Stripe Checkout : le serveur recalculera les prix
-            à partir des identifiants, sans jamais faire confiance au navigateur. */}
-        <button type="button" className="btn btn-primary btn-lg" disabled>
-          Passer au paiement
-        </button>
+        {market === "fr" ? (
+          <CheckoutButton disabled={unavailable} />
+        ) : (
+          <button type="button" className="btn btn-primary btn-lg" disabled>
+            Passer au paiement
+          </button>
+        )}
         <p className="summary-note">
           {unavailable
             ? "Retirez les articles indisponibles pour continuer."
             : market === "cm"
               ? "Le paiement par Orange Money et MTN MoMo arrive bientôt."
-              : "Le paiement en ligne arrive bientôt. Votre carte sera saisie sur la page sécurisée de Stripe."}
+              : "Carte bancaire, Apple Pay ou Google Pay, sur la page sécurisée de Stripe."}
         </p>
       </aside>
     </div>

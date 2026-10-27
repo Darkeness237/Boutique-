@@ -2728,3 +2728,19 @@ svg {
   background: var(--paper);
   font: 400 0.9375rem var(--font-body);
 }
+
+.thanks {
+  display: grid;
+  gap: 16px;
+}
+
+.thanks-items {
+  margin: 0;
+  padding: 14px 18px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  display: grid;
+  gap: 6px;
+}
