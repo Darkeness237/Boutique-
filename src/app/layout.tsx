@@ -6,6 +6,9 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/components/CartProvider";
+import { Ticker } from "@/components/Ticker";
+import { FREE_SHIPPING_CENTS } from "@/lib/cart";
+import { formatPrice } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +33,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="fr">
       <body>
         <CartProvider>
+          <Ticker
+            label="Nos engagements"
+            items={[
+              `Livraison offerte dès ${formatPrice(FREE_SHIPPING_CENTS)}`,
+              "Compatibilité vérifiée sur chaque config",
+              "14 jours pour changer d'avis",
+              "Garantie légale de 2 ans",
+              "Paiement sécurisé par Stripe",
+              "Des milliers de pièces en stock",
+            ]}
+          />
           <Header />
           <main id="contenu">{children}</main>
           <Footer />

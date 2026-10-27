@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { displayName, type Product } from "@/lib/catalog";
 import { formatPrice, stockLabel } from "@/lib/format";
-import { ProductVisual } from "./ProductVisual";
+import { ProductImage } from "./ProductImage";
 import { AddToCartButton } from "./AddToCartButton";
 
 /** Ce qu'on peut dire d'utile en une ligne, avec les seules données disponibles. */
@@ -21,7 +21,7 @@ export function ProductCard({ product }: { product: Product }) {
     <article className="product-card">
       <Link href={`/produit/${product.slug}`} className="product-card-link">
         <div className="product-card-visual">
-          <ProductVisual category={product.category_slug} />
+          <ProductImage src={product.image_url} alt={`${product.brand} ${name}`} category={product.category_slug} brand={product.brand} />
         </div>
         <p className="product-card-brand">{product.brand}</p>
         <h3 className="product-card-name">{name}</h3>

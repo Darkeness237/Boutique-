@@ -14,6 +14,9 @@ export type Product = {
   memory: string | null;
   psu_watts: number | null;
   image_url: string | null;
+  /** Caractéristiques fabricant (Open Icecat), [libellé, valeur]. Objet vide si aucune. */
+  specs: [string, string][] | Record<string, never>;
+  media_source: string | null;
 };
 
 /**

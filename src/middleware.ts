@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     // Styles inline autorisés : Next.js en injecte ; le risque est faible comparé aux scripts.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    // Photos produits servies par le CDN d'Open Icecat.
+    "img-src 'self' data: blob: https://images.icecat.biz",
     "font-src 'self'",
     // À élargir quand Supabase et Stripe seront branchés (leurs domaines exacts, rien de plus).
     "connect-src 'self'",

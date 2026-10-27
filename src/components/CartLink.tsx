@@ -20,7 +20,12 @@ export function CartLink() {
         <circle cx="17" cy="19.5" r="1.3" fill="currentColor" />
       </svg>
       <span className="header-cart-text">Panier</span>
-      {ready && count > 0 && <span className="header-cart-count">{count}</span>}
+      {/* La clé change à chaque ajout : la pastille rejoue sa petite animation. */}
+      {ready && count > 0 && (
+        <span key={count} className="header-cart-count">
+          {count}
+        </span>
+      )}
     </Link>
   );
 }

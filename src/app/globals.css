@@ -1298,3 +1298,333 @@ svg {
   gap: 12px;
   margin-top: 24px;
 }
+
+/* Photos produits ----------------------------------------------------- */
+
+.product-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply; /* fond blanc des photos fondu dans le gris de la vignette */
+  transition: transform 300ms ease;
+}
+
+.product-card-visual {
+  overflow: hidden;
+  padding: 14px;
+}
+
+.product-card-visual .product-photo {
+  max-height: 100%;
+}
+
+.product-card:hover .product-photo {
+  transform: scale(1.05);
+}
+
+.product-hero-visual {
+  padding: clamp(16px, 4vw, 40px);
+  overflow: hidden;
+}
+
+.product-hero-visual .product-photo {
+  max-height: 440px;
+  mix-blend-mode: normal;
+}
+
+.cart-line-visual {
+  overflow: hidden;
+  padding: 6px;
+}
+
+/* Bandeaux défilants ------------------------------------------------- */
+
+.ticker {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.ticker-light {
+  background: var(--paper);
+  color: var(--muted);
+}
+
+.ticker-dark {
+  background: var(--bench);
+  color: var(--bench-muted);
+  border-bottom: 0;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 48s linear infinite;
+}
+
+.ticker-dark .ticker-track {
+  animation-duration: 70s;
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker ul {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ticker li {
+  padding: 8px 28px;
+  white-space: nowrap;
+}
+
+.ticker-dark li {
+  padding: 18px 36px;
+}
+
+.ticker li::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 28px;
+  border-radius: 50%;
+  background: var(--signal);
+  vertical-align: middle;
+}
+
+.ticker-dark li::before {
+  background: var(--signal-bright);
+  margin-right: 36px;
+}
+
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Carrousels ---------------------------------------------------------- */
+
+.section-tight {
+  padding-block: clamp(20px, 3vw, 32px);
+}
+
+.rail {
+  position: relative;
+}
+
+.rail-controls {
+  position: absolute;
+  top: -58px;
+  right: 110px;
+  display: flex;
+  gap: 8px;
+}
+
+.rail-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rail-btn:hover {
+  border-color: var(--ink);
+}
+
+.rail-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(230px, calc((100% - 3 * 16px) / 4));
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+  padding: 2px 2px 14px;
+  scrollbar-width: thin;
+}
+
+.rail-track > * {
+  scroll-snap-align: start;
+}
+
+@media (max-width: 760px) {
+  .rail-controls {
+    display: none;
+  }
+  .rail-track {
+    grid-auto-columns: 72%;
+  }
+}
+
+/* Catégories en vignettes -------------------------------------------- */
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cat-tile {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  text-decoration: none;
+  transition: border-color 150ms ease;
+}
+
+.cat-tile:hover {
+  border-color: var(--ink);
+}
+
+.cat-tile-img {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.cat-tile-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 300ms ease;
+}
+
+.cat-tile:hover .cat-tile-img img {
+  transform: scale(1.06) rotate(-1deg);
+}
+
+/* La config qui s'assemble : l'unique animation de chargement de la page ---- */
+
+.bench-parts li,
+.bench-checks li,
+.bench-foot {
+  animation: part-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.bench-parts li:nth-child(1) { animation-delay: 120ms; }
+.bench-parts li:nth-child(2) { animation-delay: 220ms; }
+.bench-parts li:nth-child(3) { animation-delay: 320ms; }
+.bench-parts li:nth-child(4) { animation-delay: 420ms; }
+.bench-parts li:nth-child(5) { animation-delay: 520ms; }
+
+.bench-checks li {
+  animation-name: check-in;
+}
+
+.bench-checks li:nth-child(1) { animation-delay: 760ms; }
+.bench-checks li:nth-child(2) { animation-delay: 900ms; }
+.bench-checks li:nth-child(3) { animation-delay: 1040ms; }
+.bench-foot { animation-delay: 1200ms; }
+
+.bench-checks li .bench-dot {
+  animation: dot-on 500ms ease both;
+  animation-delay: inherit;
+}
+
+@keyframes part-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+@keyframes check-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dot-on {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.6);
+  }
+}
+
+/* Pastille du panier ------------------------------------------------- */
+
+.header-cart-count {
+  animation: bump 380ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes bump {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
+  .ticker ul[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* Vignette sans photo : le schéma de la pièce et la marque en filigrane. */
+.visual-fallback {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(120% 90% at 50% 100%, #e4e7f8 0%, transparent 60%);
+}
+
+.visual-fallback .product-visual {
+  width: 62%;
+}
+
+.visual-brand {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  color: #c3c8d6;
+  text-transform: none;
+}
+
+.product-hero-visual .visual-brand {
+  font-size: var(--step-3);
+  left: 24px;
+  bottom: 16px;
+}
+
+.footer-credit {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+}

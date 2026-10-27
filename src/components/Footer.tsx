@@ -44,6 +44,9 @@ export function Footer() {
           <p className="footer-copy">
             © {new Date().getFullYear()} Silicium · {PRICE_NOTE}
           </p>
+          <p className="footer-copy footer-credit">
+            Photos et caractéristiques produits : fabricants, via Open Icecat. Contenu fourni en l&apos;état.
+          </p>
         </div>
       </div>
     </footer>

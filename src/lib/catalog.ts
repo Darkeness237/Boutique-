@@ -8,7 +8,7 @@ export type { Product } from "./product";
 export { displayName } from "./product";
 
 export const PRODUCT_COLUMNS =
-  "id, slug, name, brand, category_slug, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url";
+  "id, slug, name, brand, category_slug, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source";
 
 export const PAGE_SIZE = 24;
 
@@ -49,6 +49,15 @@ export const getBrands = cache(async (category?: string): Promise<string[]> => {
   return must<{ brand: string }[]>(res, "marques").map((r) => r.brand);
 });
 
+/** Marques les plus représentées en stock (pour le bandeau de l'accueil). */
+export const getTopBrands = cache(async (n: number): Promise<string[]> => {
+  const res = await supabase.rpc("category_brands", { p_category: null });
+  return must<{ brand: string; products: number }[]>(res, "marques")
+    .sort((a, b) => b.products - a.products)
+    .slice(0, n)
+    .map((r) => r.brand);
+});
+
 export type Sort = "pertinence" | "prix-croissant" | "prix-decroissant";
 
 export type Search = {
@@ -72,7 +81,7 @@ export async function searchProducts(s: Search): Promise<{ items: Product[]; tot
 
   if (s.sort === "prix-croissant") query = query.order("price_cents");
   else if (s.sort === "prix-decroissant") query = query.order("price_cents", { ascending: false });
-  else query = query.order("in_stock", { ascending: false }).order("price_cents");
+  else query = query.order("in_stock", { ascending: false }).order("has_image", { ascending: false }).order("price_cents");
 
   const from = (page - 1) * PAGE_SIZE;
   const res = await query.range(from, from + PAGE_SIZE - 1);
@@ -94,6 +103,7 @@ export type StockFilter = Partial<Pick<Product, "socket" | "memory">> & {
   minPriceCents?: number;
   minPsuWatts?: number;
   nameMatches?: string[];
+  withImage?: boolean;
 };
 
 /** Produits en stock d'une catégorie, triés par prix (pour les sélections de l'accueil). */
@@ -108,6 +118,7 @@ export async function inStock(category: string, f: StockFilter = {}, limit = 60)
   if (f.memory) query = query.eq("memory", f.memory);
   if (f.minPriceCents) query = query.gte("price_cents", f.minPriceCents);
   if (f.minPsuWatts) query = query.gte("psu_watts", f.minPsuWatts);
+  if (f.withImage) query = query.not("image_url", "is", null);
   // Motifs fixés dans le code (jamais issus d'une saisie) : au moins un doit correspondre.
   if (f.nameMatches?.length) query = query.or(f.nameMatches.map((m) => `name.ilike.*${m}*`).join(","));
   const res = await query.order("price_cents").limit(limit);

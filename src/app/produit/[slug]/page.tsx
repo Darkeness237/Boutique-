@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ProductCard } from "@/components/ProductCard";
-import { ProductVisual } from "@/components/ProductVisual";
+import { ProductImage } from "@/components/ProductImage";
 import { displayName, getCategory, getProductBySlug, inStock, type Product } from "@/lib/catalog";
 import { estimatedPartWatts, recommendedPsuWatts } from "@/lib/compat";
 import { formatPrice, stockLabel } from "@/lib/format";
@@ -46,9 +46,10 @@ export default async function ProductPage({ params }: Props) {
   const name = displayName(product);
   const watts = estimatedPartWatts(product);
 
+  const makerSpecs = Array.isArray(product.specs) ? product.specs : [];
   const specs: [string, string][] = [
     ["Marque", product.brand],
-    ["Désignation", product.name],
+    ...(makerSpecs.length ? makerSpecs : [["Désignation", product.name] as [string, string]]),
     ...(product.socket ? [["Socket", product.socket] as [string, string]] : []),
     ...(product.memory ? [["Mémoire", product.memory] as [string, string]] : []),
     ...(product.psu_watts ? [["Puissance", `${product.psu_watts} W`] as [string, string]] : []),
@@ -75,7 +76,13 @@ export default async function ProductPage({ params }: Props) {
       <div className="wrap product-page">
         <div>
           <div className="product-hero-visual">
-            <ProductVisual category={product.category_slug} />
+            <ProductImage
+              src={product.image_url}
+              alt={`${product.brand} ${name}`}
+              category={product.category_slug}
+              brand={product.brand}
+              priority
+            />
           </div>
         </div>
 
@@ -108,6 +115,12 @@ export default async function ProductPage({ params }: Props) {
                 ))}
               </tbody>
             </table>
+            {product.media_source === "icecat" && (
+              <p className="compat-note">
+                Photo et caractéristiques fournies par le fabricant via Open Icecat, en l&apos;état. Le produit livré
+                fait foi.
+              </p>
+            )}
           </section>
         </div>
       </div>
