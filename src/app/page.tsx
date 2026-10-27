@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BuildPanel } from "@/components/BuildPanel";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductRail } from "@/components/ProductRail";
+import { ProductVisual } from "@/components/ProductVisual";
 import { Ticker } from "@/components/Ticker";
 import { getCategories, getTopBrands, inStock, type Product } from "@/lib/catalog";
 
@@ -16,7 +17,7 @@ const RAILS: { category: string; title: string; minEuros: number }[] = [
 
 const COVER_MIN_EUROS: Record<string, number> = {
   "cartes-graphiques": 250, processeurs: 150, "cartes-meres": 100, memoire: 60, stockage: 50,
-  alimentations: 60, boitiers: 60, refroidissement: 40, ecrans: 120, peripheriques: 30, fauteuils: 100,
+  alimentations: 60, boitiers: 60, refroidissement: 60, ecrans: 120, peripheriques: 30, fauteuils: 100,
 };
 
 export default async function HomePage() {
@@ -67,9 +68,11 @@ export default async function HomePage() {
               <li key={c.slug}>
                 <Link href={`/catalogue/${c.slug}`} className="cat-tile">
                   <span className="cat-tile-img" aria-hidden="true">
-                    {cover?.image_url && (
+                    {cover?.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={cover.image_url} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
+                    ) : (
+                      <ProductVisual category={c.slug} />
                     )}
                   </span>
                   <span className="cat-name">{c.name}</span>

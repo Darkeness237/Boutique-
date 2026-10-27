@@ -608,6 +608,7 @@ svg {
 }
 
 .product-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -1448,6 +1449,8 @@ svg {
 }
 
 .rail-track {
+  /* Contient les éléments en position absolue (messages pour lecteurs d'écran) des cartes hors champ. */
+  position: relative;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(230px, calc((100% - 3 * 16px) / 4));
@@ -1627,4 +1630,9 @@ svg {
 .footer-credit {
   flex-basis: 100%;
   font-size: 0.75rem;
+}
+
+.cat-tile-img .product-visual {
+  width: 58%;
+  color: #8a909b;
 }
