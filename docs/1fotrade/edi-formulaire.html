@@ -1,0 +1,44 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>EDI 1foTrade</title>
+<style>
+body{margin:0;background:#c9c9c9;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111}
+.box{width:520px;margin:0 auto;background:#bdbdbd;padding-bottom:14px}
+.title{background:linear-gradient(#8a8a8a,#6e6e6e);color:#fff;font-weight:bold;font-size:17px;text-align:center;padding:8px}
+fieldset{border:1px solid #888;margin:6px 6px 0;padding:6px 8px 10px}
+legend{font-weight:bold;font-size:14px;color:#222}
+.row{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:6px;margin:5px 0}
+label{font-weight:bold;text-align:right}
+label.u{color:#7a5a12;text-decoration:underline}
+.in{background:#fff;border:1px solid #999;height:20px;display:flex;align-items:center;padding:0 6px;justify-content:space-between}
+.in.sm{width:44px}
+.in.todo{background:#fff4e0;border:2px solid #e07b00;color:#a14d00;font-style:italic}
+.in b{color:#0b5d1e}
+.arrow{color:#555;font-size:10px}
+.chk{display:flex;align-items:center;gap:8px;background:#e3e3e3;border:1px solid #aaa;padding:3px 6px;font-weight:bold;width:340px;white-space:nowrap}
+.chk.on{color:#1d6b1d}
+.box2{width:14px;height:14px;border:2px solid #555;background:#fff;display:grid;place-items:center;font-size:12px;line-height:1}
+.box2.on{background:#2f6fd6;border-color:#1f4fa0;color:#fff}
+.note{margin:6px 0 0 92px;font-size:12px}
+.tag{display:inline-block;margin:10px 6px 0;font-size:12px;background:#fff4e0;border:2px solid #e07b00;color:#a14d00;padding:4px 8px}
+.link{color:#3a64b0;text-decoration:underline;font-size:12px;margin-left:92px}
+</style></head><body><div class="box">
+<div class="title">Ajouter un EDI</div>
+<fieldset><legend>Information EDI</legend>
+<div class="row"><label class="u">Format:</label><div class="in"><b>CSV (avec EAN, référence, prix HT, stock)</b><span class="arrow">▼</span></div></div>
+<div class="row" style="margin-top:12px"><label class="u">Methode:</label><div class="in"><b>FTP</b><span class="arrow">× ▼</span></div></div>
+<div class="row"><label class="u">Ip ftp:</label><div class="in todo">adresse donnée par l'hébergeur FTP</div></div>
+<div class="row"><label class="u">Port ftp:</label><div class="in sm"><b>21</b></div></div>
+<div class="row"><label>Login ftp:</label><div class="in todo">identifiant dédié à 1foTrade (à saisir vous-même)</div></div>
+<div class="row"><label>password :</label><div class="in todo">mot de passe (à saisir vous-même, ne pas le partager)</div></div>
+<div class="row"><label class="u">Dossier ftp:</label><div class="in"><b>/1fotrade/</b></div></div>
+<div class="row"><label class="u">Mode passif :</label><div class="chk on"><span class="box2 on">✓</span>Utiliser le mode FTP passif</div></div>
+<div class="link">Tester le FTP ← cliquer une fois les champs remplis</div>
+<div class="row" style="margin-top:16px"><label>Titre Edi:</label><div class="in"><b>Vetex PC – catalogue</b></div></div>
+<div class="row"><label>Periodicité</label><div class="in"><b>Toutes les heures (sinon le plus fréquent proposé)</b><span class="arrow">▼</span></div></div>
+<div class="row"><span></span><div class="chk on"><span class="box2 on">✓</span>Activer EDI</div></div>
+<div class="row"><span></span><div class="chk on"><span class="box2 on">✓</span>Activer mode test <span style="font-weight:normal;color:#a14d00">· à décocher après le 1er test</span></div></div>
+<div class="row"><span></span><div class="chk on"><span class="box2 on">✓</span>Être en copie du mail</div></div>
+<div class="note"><b>Mode test :</b> L'Edi serra envoyé au référent sur son email. Il faut désactiver cette option pour que l'edi soit envoyé au client.</div>
+<div class="row" style="margin-top:12px"><label class="u">Encodage :</label><div class="in"><b>UTF-8</b><span class="arrow">× ▼</span></div></div>
+</fieldset>
+<span class="tag">En orange : à remplir par vous une fois l'espace FTP créé</span>
+</div></body></html>
