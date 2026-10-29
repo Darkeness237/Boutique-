@@ -12,9 +12,9 @@
 import { readFileSync } from "node:fs";
 
 const SUPPLIERS = {
-  // Format du fichier « 1fotrade_price.csv » : séparateur « ; », encodage Latin-1, prix HT avec un point.
+  // Format du fichier « 1fotrade_price.csv » : séparateur « ; », prix HT avec un point.
+  // Encodage : UTF-8 (flux EDI) ou Latin-1 (export manuel), détecté automatiquement.
   "1fotrade": {
-    encoding: "latin1",
     separator: ";",
     columns: { sku: "SKU", ean: "EAN", mpn: "reference", family: "Famille", name: "nom", cost: "votre prix", stock: "stock", brand: "marque" },
     inStock: (v) => v.trim().toLowerCase() === "oui",
@@ -65,7 +65,15 @@ function parseCsv(text, sep) {
   return rows;
 }
 
-const raw = parseCsv(readFileSync(file).toString(config.encoding), config.separator);
+function decode(buf) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buf).replace(/^\uFEFF/, "");
+  } catch {
+    return buf.toString("latin1");
+  }
+}
+
+const raw = parseCsv(decode(readFileSync(file)), config.separator);
 const header = raw[0].map((h) => h.trim());
 const col = Object.fromEntries(
   Object.entries(config.columns).map(([k, name]) => {

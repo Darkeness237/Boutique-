@@ -1,0 +1,70 @@
+# Synchronisation du catalogue 1foTrade.
+# 1foTrade dépose son fichier (EDI) sur la Storage Box Hetzner ; cette tâche récupère le plus récent
+# toutes les heures, en SFTP chiffré avec un compte en lecture seule, puis l'importe dans Supabase
+# (prix, stock, promotions et prix FCFA sont recalculés par la base).
+#
+# Secrets requis (Settings > Secrets and variables > Actions) :
+#   STORAGEBOX_HOST, STORAGEBOX_USER, STORAGEBOX_PASSWORD   compte « lecture » de la Storage Box
+#   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, IMPORT_TOKEN    accès à l'API d'import de la base
+name: Import catalogue 1foTrade
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: import-1fotrade
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Récupérer le dernier fichier 1foTrade
+        env:
+          HOST: ${{ secrets.STORAGEBOX_HOST }}
+          USER_NAME: ${{ secrets.STORAGEBOX_USER }}
+          LFTP_PASSWORD: ${{ secrets.STORAGEBOX_PASSWORD }}
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y -qq lftp > /dev/null
+          mkdir -p ~/.ssh incoming
+          # Clé du serveur enregistrée avant connexion (port SSH des Storage Box : 23).
+          ssh-keyscan -p 23 -t ed25519,rsa "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          LATEST=$(lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "set sftp:auto-confirm no; cls -1 --sort=date *.csv *.CSV *.txt; bye" 2>/dev/null | head -n 1 || true)
+          if [ -z "$LATEST" ]; then
+            echo "Aucun fichier déposé par 1foTrade pour l'instant."
+            echo "FILE=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "Fichier le plus récent : $LATEST"
+          lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "get \"$LATEST\" -o incoming/catalogue.csv; bye"
+          echo "FILE=incoming/catalogue.csv" >> "$GITHUB_ENV"
+
+      - name: Importer dans Supabase
+        if: env.FILE != ''
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
+        run: node scripts/import-fournisseur.mjs 1fotrade "$FILE"
+
+      - name: Photos et fiches des nouveaux produits (Open Icecat)
+        if: env.FILE != ''
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
+        run: timeout 20m node scripts/enrichir-icecat.mjs || true
