@@ -39,7 +39,7 @@ function cmBanners(gpu: Product | undefined, ssd: Product | undefined): Banner[]
       id: "cm-livraison",
       kicker: "Livraison à Douala et Yaoundé",
       title: "Vos pièces PC livrées chez vous, douane comprise",
-      text: "Prix tout compris en FCFA : transport par avion, dédouanement et TVA camerounaise inclus.",
+      text: "Prix en FCFA avec transport par avion, dédouanement et TVA camerounaise inclus. Livraison à domicile dès 2 000 FCFA.",
       cta: "Voir les cartes graphiques",
       href: "/catalogue/cartes-graphiques?dispo=1",
       image: gpu?.image_url ?? null,
@@ -58,7 +58,7 @@ function cmBanners(gpu: Product | undefined, ssd: Product | undefined): Banner[]
     {
       id: "cm-stockage",
       kicker: "Légers à expédier",
-      title: "SSD et mémoire : les meilleurs prix livrés",
+      title: "SSD et mémoire : légers, donc moins chers à livrer",
       text: "Les petites pièces voyagent à moindre coût : idéal pour faire évoluer votre PC.",
       cta: "Voir le stockage",
       href: "/catalogue/stockage?dispo=1",
@@ -239,8 +239,8 @@ function PromiseStrip({ market }: { market: Market }) {
   const items =
     market === "cm"
       ? [
-          ["Prix tout compris", "douane et TVA incluses"],
-          ["Livré à domicile", "à Douala et Yaoundé"],
+          ["Douane comprise", "transport et TVA inclus"],
+          ["Livré à domicile", "dès 2 000 FCFA"],
           ["Garantie 2 ans", "sur tout le catalogue"],
           ["Mobile Money", "Orange Money et MTN MoMo"],
         ]

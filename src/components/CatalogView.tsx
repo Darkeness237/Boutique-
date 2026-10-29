@@ -59,7 +59,7 @@ export async function CatalogView({
         {category && !sub && <p className="lede">{category.hint}</p>}
         {market === "cm" && (
           <p className="market-note">
-            Prix livrés au Cameroun : transport, dédouanement et TVA camerounaise compris, sans TVA française.
+            Prix rendus au Cameroun : transport depuis la France, dédouanement et TVA camerounaise compris, sans TVA française. Livraison à domicile en plus, selon le poids du colis (dès 2 000 FCFA).
           </p>
         )}
       </div>

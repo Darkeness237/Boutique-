@@ -247,7 +247,8 @@ export default async function ProductPage({ params }: Props) {
                 <dt>Livraison</dt>
                 <dd>
                   Envoi par avion depuis la France, dédouanement à Douala, puis livraison à domicile à {cities}. Le
-                  tarif de livraison à domicile dépend de la ville et s&apos;affiche au panier.
+                  prix affiché comprend le transport et la douane ; la livraison à domicile (de 2 000 à 3 500 FCFA par colis
+                  selon le poids) s&apos;ajoute au panier.
                 </dd>
                 <dt>Droits et taxes</dt>
                 <dd>Déjà compris dans le prix : vous ne payez rien de plus à l&apos;arrivée.</dd>

@@ -119,7 +119,7 @@ export async function searchProducts(s: Search): Promise<{ items: Product[]; tot
   if (s.subcategory) query = query.eq("subcategory", s.subcategory);
   if (s.brands?.length) query = query.in("brand", s.brands);
   const cm = s.market === "cm";
-  // Au Cameroun : seuls les produits qui ont un prix livré, et le prix maximum est en FCFA.
+  // Au Cameroun : seuls les produits qui ont un prix FCFA, et le prix maximum est en FCFA.
   if (cm) query = query.not("price_xaf", "is", null);
   if (s.maxPriceCents) query = query.lte(cm ? "price_xaf" : "price_cents", s.maxPriceCents);
   if (s.inStockOnly) query = query.eq("in_stock", true);

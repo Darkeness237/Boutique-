@@ -1,6 +1,6 @@
 import { activePromo, effectivePrice, type Product } from "./product";
 
-// Deux marchés : la France (prix en euros, TTC) et le Cameroun (prix en FCFA, livrés,
+// Deux marchés : la France (prix en euros, TTC) et le Cameroun (prix en FCFA rendus au Cameroun,
 // transport, dédouanement et TVA camerounaise compris). Le marché est choisi par cookie.
 export type Market = "fr" | "cm";
 export const MARKET_COOKIE = "marche";
@@ -22,7 +22,7 @@ export function formatMoney(market: Market, amount: number): string {
   return market === "cm" ? xaf.format(amount) : eur.format(amount / 100);
 }
 
-/** Le produit peut-il être vendu sur ce marché ? (au Cameroun : uniquement s'il a un prix livré) */
+/** Le produit peut-il être vendu sur ce marché ? (au Cameroun : uniquement s'il a un prix FCFA) */
 export function isAvailableIn(p: Pick<Product, "price_xaf">, market: Market): boolean {
   return market === "fr" || p.price_xaf !== null;
 }
@@ -38,6 +38,6 @@ export function promoFor(p: Product, market: Market) {
 
 export function priceNote(market: Market, vatNote: string): string {
   return market === "cm"
-    ? "Prix livré sans TVA française : transport, dédouanement et TVA camerounaise compris"
+    ? "Prix sans TVA française, transport jusqu'au Cameroun et dédouanement compris. Livraison à domicile en plus, selon le poids (dès 2 000 FCFA)"
     : vatNote;
 }

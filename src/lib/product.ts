@@ -23,7 +23,7 @@ export type Product = {
   promo_ends_at: string | null;
   /** Prix le plus bas des 30 derniers jours : seule base légale d'un prix barré. */
   reference_price_cents: number | null;
-  /** Prix livré au Cameroun en FCFA (null : produit non proposé au Cameroun). */
+  /** Prix au Cameroun en FCFA, transitaire et dédouanement compris, livraison à domicile en sus (null : produit non proposé au Cameroun). */
   price_xaf: number | null;
   cm_days_min: number | null;
   cm_days_max: number | null;

@@ -14,12 +14,12 @@ export async function Footer() {
         {market === "cm" ? (
           <ul className="promises">
             <li>
-              <strong>Prix tout compris</strong>
-              <span>Transport aérien, dédouanement et TVA camerounaise inclus : aucun frais à l&apos;arrivée.</span>
+              <strong>Douane comprise</strong>
+              <span>Transport aérien, dédouanement et TVA camerounaise inclus dans le prix : aucune taxe à payer à l&apos;arrivée.</span>
             </li>
             <li>
               <strong>Livré à domicile</strong>
-              <span>À Douala et Yaoundé, par notre partenaire local. Tarif selon la ville, affiché au panier.</span>
+              <span>À Douala et Yaoundé, par notre partenaire local. De 2 000 à 3 500 FCFA par colis selon le poids, affiché au panier.</span>
             </li>
             <li>
               <strong>Garantie de 2 ans</strong>

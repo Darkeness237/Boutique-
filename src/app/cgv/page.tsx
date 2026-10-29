@@ -36,10 +36,10 @@ export default function CgvPage() {
         </p>
         <h2>Ventes à destination du Cameroun</h2>
         <p>
-          Les prix affichés en francs CFA sont des prix livrés : ils comprennent le transport aérien depuis la France,
+          Les prix affichés en francs CFA sont des prix rendus au Cameroun : ils comprennent le transport aérien depuis la France,
           l&apos;assurance, les droits de douane, les taxes à l&apos;importation et la TVA camerounaise. Aucun frais
-          supplémentaire n&apos;est demandé à l&apos;arrivée, hormis la livraison à domicile, dont le tarif dépend de la
-          ville et s&apos;affiche avant le paiement.
+          supplémentaire n&apos;est demandé à l&apos;arrivée, hormis la livraison à domicile, facturée par colis selon
+          son poids (2 000 FCFA jusqu&apos;à 5 kg, 2 500 FCFA jusqu&apos;à 10 kg, 3 500 FCFA au-delà) et affichée avant le paiement.
         </p>
         <p>
           Les produits expédiés au Cameroun sont vendus sans TVA française (exportation hors de l&apos;Union

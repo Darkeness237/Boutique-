@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     market === "cm"
       ? [
           "Livré chez vous à Douala et Yaoundé",
-          "Prix tout compris : transport, douane et TVA inclus",
+          "Transport, douane et TVA inclus dans le prix",
           "Paiement par Orange Money et MTN MoMo",
           "Compatibilité vérifiée sur chaque config",
           "Garantie de 2 ans",
