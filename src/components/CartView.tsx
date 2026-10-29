@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { displayName, type Product } from "@/lib/product";
-import type { DeliveryZone } from "@/lib/catalog";
+import type { DeliveryZone, LastmileRate } from "@/lib/catalog";
 import { formatMoney, isAvailableIn, priceNote, promoFor, unitPrice } from "@/lib/market";
-import { FREE_SHIPPING_CENTS, MAX_QTY, SHIPPING_CENTS, priceCart } from "@/lib/cart";
+import { FREE_SHIPPING_CENTS, MAX_QTY, SHIPPING_CENTS, cmDeliveryFee, parcelKg, priceCart } from "@/lib/cart";
 import { PRICE_NOTE, TOTAL_LABEL } from "@/lib/legal";
 import { useCart } from "./CartProvider";
 import { CheckoutButton } from "./CheckoutButton";
@@ -14,7 +14,7 @@ import { ProductVisual } from "./ProductVisual";
 
 type Load = { status: "loading" } | { status: "ready"; products: Product[] } | { status: "error" };
 
-export function CartView({ zones }: { zones: DeliveryZone[] }) {
+export function CartView({ zones, rates }: { zones: DeliveryZone[]; rates: LastmileRate[] }) {
   const { lines: raw, ready, setQty, remove } = useCart();
   const market = useMarket();
   const [zone, setZone] = useState(zones[0]?.slug ?? "");
@@ -65,10 +65,15 @@ export function CartView({ zones }: { zones: DeliveryZone[] }) {
     );
   }
 
-  // France : livraison offerte au-delà du seuil. Cameroun : tarif de livraison à domicile de la ville.
+  // France : livraison offerte au-delà du seuil. Cameroun : grille du livreur selon le poids du colis.
   const cmZone = zones.find((z) => z.slug === zone);
+  const kg = parcelKg(lines);
   const shipping =
-    market === "cm" ? (cmZone?.fee_xaf ?? 0) : subtotalCents >= FREE_SHIPPING_CENTS ? 0 : SHIPPING_CENTS;
+    market === "cm"
+      ? cmDeliveryFee(kg, rates, cmZone?.fee_xaf ?? 0)
+      : subtotalCents >= FREE_SHIPPING_CENTS
+        ? 0
+        : SHIPPING_CENTS;
   const missing = market === "fr" ? FREE_SHIPPING_CENTS - subtotalCents : 0;
   const unavailable = lines.some((l) => !l.product.in_stock || !isAvailableIn(l.product, market));
 
@@ -128,7 +133,7 @@ export function CartView({ zones }: { zones: DeliveryZone[] }) {
             <select value={zone} onChange={(e) => setZone(e.target.value)}>
               {zones.map((z) => (
                 <option key={z.slug} value={z.slug}>
-                  {z.city} : {money(z.fee_xaf)}
+                  {z.city}
                 </option>
               ))}
             </select>
@@ -138,6 +143,12 @@ export function CartView({ zones }: { zones: DeliveryZone[] }) {
           <span>{market === "cm" ? "Livraison à domicile" : "Livraison"}</span>
           <span>{shipping === 0 ? "Offerte" : money(shipping)}</span>
         </p>
+        {market === "cm" && (
+          <p className="summary-note">
+            Colis d&apos;environ {kg.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg, livré chez vous par notre
+            partenaire.
+          </p>
+        )}
         {missing > 0 && <p className="summary-note">Plus que {money(missing)} pour la livraison offerte.</p>}
         <p className="summary-row summary-total">
           <span>{market === "cm" ? "Total à payer" : TOTAL_LABEL}</span>

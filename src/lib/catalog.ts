@@ -12,7 +12,7 @@ export { activePromo, displayName, effectivePrice } from "./product";
 
 // Une seule chaîne littérale : le client Supabase en déduit le type des lignes.
 export const PRODUCT_COLUMNS =
-  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max, ean";
+  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max, ean, cm_kg";
 
 export const PAGE_SIZE = 24;
 
@@ -42,6 +42,14 @@ export type DeliveryZone = { slug: string; city: string; fee_xaf: number; days_m
 export const getDeliveryZones = cache(async (): Promise<DeliveryZone[]> => {
   const res = await supabase.from("cm_delivery_zones").select("slug, city, fee_xaf, days_min, days_max").order("sort");
   return must(res, "zones de livraison");
+});
+
+export type LastmileRate = { max_kg: number | null; fee_xaf: number };
+
+/** Grille du livreur au Cameroun (par colis, selon le poids total). */
+export const getLastmileRates = cache(async (): Promise<LastmileRate[]> => {
+  const res = await supabase.from("cm_lastmile_rates").select("max_kg, fee_xaf").order("fee_xaf");
+  return must(res, "tarifs de livraison");
 });
 
 /** Catégories et sous-catégories avec leur nombre de produits (menu latéral). */

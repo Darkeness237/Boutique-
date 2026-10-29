@@ -29,6 +29,8 @@ export type Product = {
   cm_days_max: number | null;
   /** Code-barres EAN (GTIN), public : sert aux données structurées et au flux Google Shopping. */
   ean: string | null;
+  /** Poids d'expédition estimé (kg, emballage compris), pour la livraison au Cameroun. */
+  cm_kg: number | null;
 };
 
 /** Promotion en cours (la date de fin est revérifiée ici, au cas où la base n'a pas encore été rafraîchie). */

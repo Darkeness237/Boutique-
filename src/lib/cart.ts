@@ -48,3 +48,18 @@ export function priceCart(
 
 export const FREE_SHIPPING_CENTS = 9900;
 export const SHIPPING_CENTS = 690;
+
+/** Poids d'un colis pour le Cameroun (1 kg par défaut si le poids d'un produit est inconnu). */
+export function parcelKg(lines: PricedLine[]): number {
+  return lines.reduce((kg, l) => kg + (l.product.cm_kg ?? 1) * l.qty, 0);
+}
+
+/**
+ * Livraison à domicile au Cameroun : tranche de poids de la grille du livreur, plus un éventuel
+ * supplément de la ville. Au-delà de la dernière tranche, tarif « volume » (dernière ligne).
+ */
+export function cmDeliveryFee(kg: number, rates: { max_kg: number | null; fee_xaf: number }[], zoneFee = 0): number {
+  const sorted = [...rates].sort((a, b) => (a.max_kg ?? Infinity) - (b.max_kg ?? Infinity));
+  const rate = sorted.find((r) => r.max_kg === null || kg <= r.max_kg) ?? sorted[sorted.length - 1];
+  return (rate?.fee_xaf ?? 0) + zoneFee;
+}
