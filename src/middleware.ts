@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const MARKET_CHOICE_COOKIE = "marche_choix";
+
 // CSP stricte avec un nonce par requête : seuls les scripts émis par Next.js
 // (qui reçoivent ce nonce) peuvent s'exécuter. Bloque l'essentiel des attaques XSS.
 export async function middleware(request: NextRequest) {
@@ -30,12 +32,19 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
 
-  // Premier passage : on devine le pays de livraison (Cameroun ou France) d'après la géolocalisation
-  // fournie par l'hébergeur ou la langue du navigateur. Le visiteur peut changer ensuite.
+  // Pays de livraison : déduit à chaque visite de la géolocalisation fournie par l'hébergeur
+  // (Cameroun : prix en FCFA ; ailleurs : prix en euros), sauf si le visiteur a choisi lui-même
+  // avec le sélecteur (cookie marche_choix), auquel cas son choix est respecté.
   let market: string | null = null;
-  if (!request.cookies.get("marche")) {
-    market = guessCountry(request) === "CM" ? "cm" : "fr";
-    requestHeaders.set("cookie", `${request.headers.get("cookie") ?? ""}; marche=${market}`.replace(/^; /, ""));
+  if (!request.cookies.get(MARKET_CHOICE_COOKIE)) {
+    const country = guessCountry(request);
+    const current = request.cookies.get("marche")?.value;
+    const guessed = country ? (country === "CM" ? "cm" : "fr") : (current ?? "fr");
+    if (guessed !== current) {
+      market = guessed;
+      request.cookies.set("marche", guessed);
+      requestHeaders.set("cookie", request.cookies.toString());
+    }
   }
 
   // Client connecté : on rafraîchit sa session (jeton court) avant que la page la lise.

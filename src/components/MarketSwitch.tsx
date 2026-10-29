@@ -14,6 +14,8 @@ export function MarketSwitch() {
   const choose = (m: Market) => {
     if (m === market) return;
     document.cookie = `${MARKET_COOKIE}=${m}; path=/; max-age=31536000; samesite=lax; secure`;
+    // Choix explicite : il prime désormais sur la détection automatique du pays.
+    document.cookie = `marche_choix=1; path=/; max-age=31536000; samesite=lax; secure`;
     start(() => router.refresh());
   };
 
