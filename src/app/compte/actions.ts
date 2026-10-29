@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import {
   deliverySchema,
   fieldErrors,
@@ -10,7 +11,14 @@ import {
   toProfileRow,
   type FieldErrors,
 } from "@/lib/auth-schema";
+import { homeFor } from "@/lib/staff";
 import { supabaseForUser } from "@/lib/supabase-server";
+
+const signupPartnerSchema = z.object({
+  name: z.string().trim().min(2, "Indiquez votre nom.").max(60),
+  email: z.string().trim().toLowerCase().email("Adresse e-mail invalide.").max(254),
+  password: z.string().min(12, "Le mot de passe doit contenir au moins 12 caractères.").max(128),
+});
 
 export type FormState = {
   errors?: FieldErrors;
@@ -81,9 +89,9 @@ export async function signIn(_prev: FormState, data: FormData): Promise<FormStat
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values: keep(input) };
 
   const supabase = await supabaseForUser();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) {
-    const unconfirmed = /confirm/i.test(error.message);
+  const { data: auth, error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error || !auth.user) {
+    const unconfirmed = /confirm/i.test(error?.message ?? "");
     return {
       notice: unconfirmed
         ? "Activez d'abord votre compte avec le lien reçu par e-mail."
@@ -91,7 +99,7 @@ export async function signIn(_prev: FormState, data: FormData): Promise<FormStat
       values: { email: parsed.data.email },
     };
   }
-  redirect("/compte");
+  redirect(await homeFor(auth.user.id));
 }
 
 export async function signOut() {
@@ -129,4 +137,28 @@ export async function deleteAccount(_prev: FormState, data: FormData): Promise<F
   }
   await supabase.auth.signOut();
   redirect("/?compte=supprime");
+}
+
+// Accès partenaire (transitaire) : compte minimal, le rôle vient de l'invitation de l'admin.
+export async function signUpPartner(_prev: FormState, data: FormData): Promise<FormState> {
+  const parsed = signupPartnerSchema.safeParse({
+    name: String(data.get("firstName") ?? ""),
+    email: String(data.get("email") ?? ""),
+    password: String(data.get("password") ?? ""),
+  });
+  if (!parsed.success) return { notice: parsed.error.issues[0]?.message ?? "Formulaire incomplet." };
+  const supabase = await supabaseForUser();
+  const { error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: { emailRedirectTo: `${site()}/auth/callback`, data: { first_name: parsed.data.name } },
+  });
+  if (error) {
+    console.error("Inscription partenaire :", error.message);
+    return { notice: "La création de l'accès n'a pas abouti. Réessayez dans quelques minutes." };
+  }
+  return {
+    ok: true,
+    notice: `Ouvrez l'e-mail envoyé à ${parsed.data.email} et cliquez sur le lien : votre accès sera actif.`,
+  };
 }

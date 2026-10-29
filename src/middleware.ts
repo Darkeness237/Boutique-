@@ -18,8 +18,8 @@ export async function middleware(request: NextRequest) {
     // Photos produits servies par le CDN d'Open Icecat.
     "img-src 'self' data: blob: https://images.icecat.biz",
     "font-src 'self'",
-    // À élargir quand Supabase et Stripe seront branchés (leurs domaines exacts, rien de plus).
-    "connect-src 'self'",
+    // Supabase : dépôt direct des documents de transit (autorisation à usage unique).
+    `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}`.trim(),
     "frame-src 'none'",
     "frame-ancestors 'none'",
     "object-src 'none'",

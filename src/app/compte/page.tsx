@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { DeleteAccountForm, ProfileForm } from "@/components/ProfileForm";
 import { getDeliveryZones } from "@/lib/catalog";
 import { formatMoney } from "@/lib/market";
+import { getStaff } from "@/lib/staff";
 import { currentUser, supabaseForUser } from "@/lib/supabase-server";
 import { signOut } from "./actions";
 
@@ -62,6 +63,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     searchParams,
   ]);
 
+  const staff = await getStaff();
   const incomplete = !profile?.phone || !profile.address_line1;
   const initial = {
     firstName: profile?.first_name ?? "",
@@ -81,6 +83,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <div className="page-head">
         <h1>Bonjour{profile?.first_name ? ` ${profile.first_name}` : ""}</h1>
         <p className="lede">{user.email}</p>
+        {staff && (
+          <p>
+            <Link href={staff.role === "admin" ? "/admin" : "/transitaire"} className="btn btn-dark btn-sm">
+              {staff.role === "admin" ? "Administration" : "Espace transitaire"}
+            </Link>
+          </p>
+        )}
         {params.bienvenue && incomplete && (
           <p className="form-notice">
             Bienvenue ! Ajoutez votre adresse de livraison ci-dessous : elle sera prête pour votre première commande.

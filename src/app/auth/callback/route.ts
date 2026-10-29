@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { homeFor } from "@/lib/staff";
 import { supabaseForUser } from "@/lib/supabase-server";
 
 const OTP_TYPES = new Set<EmailOtpType>(["signup", "email", "recovery", "email_change", "invite", "magiclink"]);
@@ -20,5 +21,8 @@ export async function GET(request: NextRequest) {
   } else if (tokenHash && tokenHash.length < 200 && type && OTP_TYPES.has(type)) {
     ok = !(await supabase.auth.verifyOtp({ token_hash: tokenHash, type })).error;
   }
-  return NextResponse.redirect(ok ? `${site}/compte?bienvenue=1` : `${site}/connexion?erreur=lien`);
+  if (!ok) return NextResponse.redirect(`${site}/connexion?erreur=lien`);
+  const { data } = await supabase.auth.getUser();
+  const home = data.user ? await homeFor(data.user.id) : "/compte";
+  return NextResponse.redirect(`${site}${home === "/compte" ? "/compte?bienvenue=1" : home}`);
 }

@@ -1338,6 +1338,289 @@ svg {
   font-size: 0.9375rem;
 }
 
+/* Transit (admin et transitaire) ------------------------------------- */
+
+.admin {
+  padding-bottom: 72px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 16px;
+  border-radius: var(--radius-m);
+  background: var(--bench);
+  color: var(--bench-ink);
+}
+
+.admin-nav a {
+  color: var(--bench-ink);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.admin-nav a:hover {
+  color: var(--signal-bright);
+}
+
+.transit-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.transit-main,
+.transit-side {
+  display: grid;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .transit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-gap {
+  margin-top: 20px;
+}
+
+.form-compact {
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.field textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  font: inherit;
+  resize: vertical;
+}
+
+.message-form {
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
+.message-form textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  font: inherit;
+  resize: vertical;
+}
+
+.data-table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.data-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.cell-clip {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .data-table thead {
+    display: none;
+  }
+  .data-table tr {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .data-table td {
+    padding: 0;
+    border: 0;
+  }
+  .cell-clip {
+    max-width: none;
+    white-space: normal;
+  }
+}
+
+.pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: var(--ok);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill-new {
+  background: #eceefe;
+  color: var(--signal);
+}
+
+.pill-warn {
+  background: #fdf0e1;
+  color: var(--low);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  position: relative;
+  padding-top: 14px;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.steps li::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.steps li.is-done::before {
+  background: var(--ok-bright);
+}
+
+.steps li.is-current::before {
+  background: var(--signal);
+}
+
+.steps li.is-current {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+}
+
+.facts {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 12px;
+}
+
+.facts dt {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 560px) {
+  .facts div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.timeline {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  padding-left: 14px;
+  border-left: 3px solid var(--line);
+}
+
+.timeline li.tl-statut {
+  border-left-color: var(--signal);
+}
+
+.timeline li.tl-document {
+  border-left-color: var(--ok-bright);
+}
+
+.tl-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.tl-head span {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.tl-msg {
+  margin-top: 4px;
+  white-space: pre-line;
+}
+
+.doc-list,
+.member-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-list li {
+  display: grid;
+  gap: 2px;
+}
+
+.member-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-list form {
+  margin-left: auto;
+}
+
 /* Pages légales ------------------------------------------------------ */
 
 .prose {
