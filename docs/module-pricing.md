@@ -178,7 +178,7 @@ Votre exemple : coût réel 120 €, moyenne 160 € → cible 152,80 € → **
 - ne lit que le prix et la disponibilité, de préférence dans les données structurées schema.org de la page ;
 - ne stocke ni texte, ni photo, ni avis des concurrents.
 
-**Conséquence pratique** : les sites protégés (Amazon, LDLC, etc.) seront probablement ignorés. Pour les couvrir
+**Conséquence pratique** : Amazon (conditions d'utilisation) est exclu du relevé automatique ; les autres sites sont relevés tant qu'ils ne bloquent pas, et ignorés dès qu'ils bloquent. Pour les couvrir
 légalement : import CSV (relevé manuel des produits stratégiques) ou abonnement à un service de veille sous licence,
 branchable plus tard sur la même table `competitor_prices`.
 

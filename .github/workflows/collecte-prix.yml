@@ -1,0 +1,32 @@
+# Relevé nocturne des prix concurrents (fiches suivies uniquement, robots.txt respecté).
+# Secrets : SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, IMPORT_TOKEN (les mêmes que l'import 1foTrade).
+name: Relevé des prix concurrents
+
+on:
+  schedule:
+    - cron: "41 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collecte-prix
+  cancel-in-progress: false
+
+jobs:
+  collecte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Relever les prix
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
+          NEXT_PUBLIC_SITE_URL: https://silicium-boutique.netlify.app
+        run: node scripts/collecte-prix.mjs 400

@@ -9,7 +9,7 @@ import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { SideNav } from "@/components/SideNav";
 import { Ticker } from "@/components/Ticker";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
-import { getCategories, getCategoryTree, getTopBrands, inStock, type Product } from "@/lib/catalog";
+import { getCategories, getCategoryTree, getFeatured, getSupplierDeals, getTopBrands, inStock, type Product } from "@/lib/catalog";
 import { dealsIn, type Deal } from "@/lib/deals";
 import { formatPrice } from "@/lib/format";
 import type { Market } from "@/lib/market";
@@ -101,7 +101,7 @@ function bannersFrom(deals: Deal[], gpu: Product | undefined): Banner[] {
 export default async function HomePage() {
   const [tree, categories, market] = await Promise.all([getCategoryTree(), getCategories(), getMarket()]);
   const cm = market === "cm";
-  const [deals, rails, smallPrices, covers, brands, gpus, ssds] = await Promise.all([
+  const [deals, rails, smallPrices, covers, brands, gpus, ssds, supplierDeals, featured] = await Promise.all([
     cm
       ? Promise.resolve([] as Deal[])
       : Promise.all(DEAL_CATEGORIES.map((c) => dealsIn(c))).then((l) => l.filter((d): d is Deal => d !== null)),
@@ -116,6 +116,8 @@ export default async function HomePage() {
     getTopBrands(28),
     inStock("cartes-graphiques", { withImage: true, minPriceCents: 40000, market }, 5),
     cm ? inStock("stockage", { withImage: true, subcategory: "ssd-nvme", minPriceCents: 6000, market }, 5) : Promise.resolve([]),
+    cm ? Promise.resolve([] as Product[]) : getSupplierDeals(12).catch(() => [] as Product[]),
+    getFeatured().catch(() => [] as Product[]),
   ]);
   const coverBySlug = new Map(covers);
 
@@ -154,6 +156,33 @@ export default async function HomePage() {
               ))}
             </ProductRail>
           </div>
+        </section>
+      )}
+
+      {supplierDeals.length > 0 && (
+        <section className="wrap section section-tight" aria-labelledby="supplier-deals-title">
+          <div className="section-head">
+            <h2 id="supplier-deals-title">Bons plans du moment</h2>
+            <Link href="/catalogue?promo=1&dispo=1">Toutes les offres</Link>
+          </div>
+          <ProductRail label="Bons plans du moment">
+            {supplierDeals.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </ProductRail>
+        </section>
+      )}
+
+      {featured.length > 0 && (
+        <section className="wrap section section-tight" aria-labelledby="featured-title">
+          <div className="section-head">
+            <h2 id="featured-title">Notre sélection</h2>
+          </div>
+          <ProductRail label="Notre sélection">
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </ProductRail>
         </section>
       )}
 

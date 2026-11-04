@@ -177,3 +177,27 @@ export async function inStock(category: string | null, f: StockFilter = {}, limi
   const res = await query.order("price_cents").limit(limit);
   return must(res, "stock");
 }
+
+/** Promotions 1foTrade en cours, classées par intérêt : remise réelle, en stock, avec photo. */
+export async function getSupplierDeals(limit = 12): Promise<Product[]> {
+  const res = await supabase
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("active", true)
+    .eq("in_stock", true)
+    .eq("has_image", true)
+    .eq("promo_label", "Bon plan fournisseur")
+    .not("promo_price_cents", "is", null)
+    .gt("promo_ends_at", new Date().toISOString())
+    .limit(120);
+  const list = must(res, "bons plans fournisseur");
+  const discount = (p: Product) => 1 - (p.promo_price_cents ?? p.price_cents) / (p.reference_price_cents ?? p.price_cents);
+  return list.sort((a, b) => discount(b) - discount(a)).slice(0, limit);
+}
+
+/** Produits mis en avant depuis l'admin. */
+export async function getFeatured(): Promise<Product[]> {
+  const { data, error } = await supabase.rpc("featured_product_ids");
+  if (error || !Array.isArray(data) || data.length === 0) return [];
+  return getProductsByIds((data as number[]).map(Number));
+}

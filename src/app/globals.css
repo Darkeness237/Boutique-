@@ -1621,6 +1621,99 @@ svg {
   margin-left: auto;
 }
 
+/* Pricing ------------------------------------------------------------ */
+
+.nav-count {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--signal-bright);
+  color: var(--bench);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pricing-search {
+  display: flex;
+  gap: 8px;
+  max-width: 520px;
+  margin-top: 12px;
+}
+
+.pricing-search input {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  font: inherit;
+}
+
+.bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.pricing-table td,
+.pricing-table th {
+  white-space: nowrap;
+}
+
+.pricing-table .cell-clip {
+  max-width: 300px;
+}
+
+.num-down {
+  color: var(--ok);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.num-up {
+  color: var(--signal);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.num-warn {
+  color: var(--low);
+}
+
+tr.is-read {
+  opacity: 0.6;
+}
+
+.chart svg {
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 8px;
+  font-size: 0.8125rem;
+}
+
+.chart-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
 /* Pages légales ------------------------------------------------------ */
 
 .prose {
