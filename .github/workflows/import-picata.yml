@@ -40,11 +40,29 @@ jobs:
           echo "Lignes : $(wc -l < incoming/picata.csv)"
           echo "Encodage : $(file -b --mime-encoding incoming/picata.csv)"
 
-      - name: Aperçu du format
+      - name: Aperçu du format (noms de colonnes et types seulement : le dépôt est public)
         if: github.event.inputs.mode == 'inspecter'
         run: |
-          echo "En-tête :"; head -n 1 incoming/picata.csv
-          echo "Exemples :"; sed -n '2,4p' incoming/picata.csv | cut -c1-400
+          python3 - <<'PY'
+          import csv, io, re
+          raw = open("incoming/picata.csv", "rb").read()
+          try:
+              text = raw.decode("utf-8-sig"); enc = "utf-8"
+          except UnicodeDecodeError:
+              text = raw.decode("latin-1"); enc = "latin-1"
+          sep = max([";", ",", "\t", "|"], key=lambda c: text.splitlines()[0].count(c))
+          rows = list(csv.reader(io.StringIO(text), delimiter=sep))
+          head, body = rows[0], rows[1:2001]
+          print(f"Encodage {enc}, séparateur {sep!r}, {len(rows) - 1} lignes")
+          for i, col in enumerate(head):
+              vals = [r[i].strip() for r in body if i < len(r)]
+              filled = [v for v in vals if v]
+              num = sum(bool(re.fullmatch(r"-?\d+([.,]\d+)?", v)) for v in filled)
+              ean = sum(bool(re.fullmatch(r"\d{8,14}", v)) for v in filled)
+              distinct = len(set(filled))
+              kind = "EAN" if filled and ean > 0.8 * len(filled) else "nombre" if filled and num > 0.8 * len(filled) else "texte"
+              print(f"  {i:2d}. {col!r:32} {kind:7} rempli {len(filled)}/{len(vals)}, {distinct} valeurs distinctes")
+          PY
 
       - name: Importer dans Supabase
         if: github.event.inputs.mode != 'inspecter'
