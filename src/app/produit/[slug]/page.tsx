@@ -19,6 +19,8 @@ import { deliveryRange, deliveryWindow } from "@/lib/delivery";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { formatPrice, stockLabel } from "@/lib/format";
 import { PRICE_NOTE } from "@/lib/legal";
+import { FavoriteButton } from "@/components/FavoritesProvider";
+import { whatsappLink } from "@/lib/contact";
 import { jsonForScript, productDescription, productJsonLd } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -176,8 +178,22 @@ export default async function ProductPage({ params }: Props) {
             priceLabel={formatMoney(market, price)}
             inStock={product.in_stock && available}
           />
+          <div className="pdp-secondary">
+            <FavoriteButton id={String(product.id)} name={fullName} large />
+            {(() => {
+              const wa = whatsappLink(
+                `Bonjour Vetex PC, je suis intéressé(e) par : ${fullName} (${formatMoney(market, price)}). ` +
+                  `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/produit/${product.slug}`,
+              );
+              return wa ? (
+                <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp btn-sm">
+                  💬 {market === "cm" ? "Commander sur WhatsApp" : "Une question ? WhatsApp"}
+                </a>
+              ) : null;
+            })()}
+          </div>
           <ul className="pdp-assurances">
-            <li>{market === "cm" ? "Paiement par Orange Money ou MTN MoMo" : "Paiement sécurisé par Stripe"}</li>
+            <li>{market === "cm" ? "Conseil et commande sur WhatsApp" : "Paiement sécurisé par Stripe"}</li>
             <li>{market === "cm" ? "Aucun frais de douane à l'arrivée" : "Retour gratuit sous 14 jours"}</li>
             <li>{market === "cm" ? "Garantie de 2 ans" : "Garantie légale de 2 ans"}</li>
           </ul>

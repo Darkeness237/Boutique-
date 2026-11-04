@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCategoryTree } from "@/lib/catalog";
 import { CartLink } from "./CartLink";
+import { FavoritesLink } from "./FavoritesProvider";
 import { CategoryDrawer } from "./CategoryDrawer";
 import { Logo } from "./Logo";
 import { MarketSwitch } from "./MarketSwitch";
@@ -32,6 +33,7 @@ export async function Header() {
           <Link href={signedIn ? "/compte" : "/connexion"} className="header-link">
             {signedIn ? "Mon compte" : "Se connecter"}
           </Link>
+          <FavoritesLink />
           <CartLink />
         </nav>
       </div>
@@ -47,6 +49,8 @@ export async function Header() {
             <Link href="/#config">Config du moment</Link>
             <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Petits prix</Link>
             <Link href="/catalogue/cartes-graphiques?dispo=1">Cartes graphiques</Link>
+            <Link href="/suivi" className="shortcut-help">Suivre ma commande</Link>
+            <Link href="/aide" className="shortcut-help">Aide</Link>
           </nav>
         </div>
       </div>

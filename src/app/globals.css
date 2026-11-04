@@ -308,6 +308,22 @@ svg {
   .header-cart-text {
     display: none;
   }
+  .header-actions {
+    gap: 12px;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-row > .header-logo .logo-word {
+    font-size: 1.125rem;
+  }
+  .header-actions {
+    gap: 10px;
+  }
+  .header-actions .header-link:not(.header-fav) {
+    font-size: 0.8125rem;
+  }
 }
 
 /* Accueil ------------------------------------------------------------- */
@@ -1712,6 +1728,208 @@ tr.is-read {
   height: 10px;
   border-radius: 2px;
   vertical-align: -1px;
+}
+
+/* Aide, favoris, WhatsApp -------------------------------------------- */
+
+.help {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .help {
+    bottom: 84px; /* au-dessus de la barre d'achat mobile */
+  }
+}
+
+.help-fab {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--signal);
+  color: #fff;
+  font: 700 1.5rem/1 var(--font-display);
+  box-shadow: 0 8px 24px rgb(22 24 29 / 0.25);
+  cursor: pointer;
+}
+
+.help-fab:hover {
+  background: var(--signal-hover);
+}
+
+.help-panel {
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 120px));
+  overflow-y: auto;
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  box-shadow: 0 16px 48px rgb(22 24 29 / 0.28);
+}
+
+.help-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bench);
+  color: var(--bench-ink);
+  border-radius: var(--radius-m) var(--radius-m) 0 0;
+}
+
+.help-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.help-msg {
+  margin: 14px 16px 0;
+  padding: 10px 12px;
+  border-radius: 12px 12px 12px 2px;
+  background: var(--paper);
+  font-size: 0.9375rem;
+}
+
+.help-search {
+  margin: 12px 16px 0;
+}
+
+.help-search input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font: inherit;
+}
+
+.help-actions {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.help-actions button,
+.help-actions a {
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 0.9375rem var(--font-body);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.help-actions button:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.help-actions .help-wa,
+.btn-whatsapp {
+  border-color: #1da851;
+  background: #25d366;
+  color: #08331a;
+}
+
+.help-foot {
+  padding: 0 16px 14px;
+  font-size: 0.8125rem;
+}
+
+.fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.9);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.fav-btn.is-on {
+  color: #d92d4f;
+}
+
+.fav-btn-lg {
+  position: static;
+  padding: 8px 14px;
+  font: 600 0.9375rem var(--font-body);
+}
+
+.pdp-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.header-fav {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.fav-count {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #d92d4f;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.help-page {
+  padding-bottom: 72px;
+}
+
+.help-section {
+  margin-top: 32px;
+}
+
+.help-section h2 {
+  font-size: var(--step-2);
+  margin-bottom: 12px;
+}
+
+.faq {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  padding: 14px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.faq p {
+  padding: 0 0 16px;
+  color: var(--muted);
+  max-width: 72ch;
 }
 
 /* Pages légales ------------------------------------------------------ */

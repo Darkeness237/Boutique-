@@ -55,6 +55,18 @@ export async function Footer() {
           <nav aria-label="Informations légales">
             <ul>
               <li>
+                <Link href="/aide">Centre d&apos;aide</Link>
+              </li>
+              <li>
+                <Link href="/suivi">Suivre ma commande</Link>
+              </li>
+              <li>
+                <Link href="/aide#livraison">Livraison</Link>
+              </li>
+              <li>
+                <Link href="/aide#garantie">Garantie et retours</Link>
+              </li>
+              <li>
                 <Link href="/mentions-legales">Mentions légales</Link>
               </li>
               <li>

@@ -10,6 +10,8 @@ import { Ticker } from "@/components/Ticker";
 import { FREE_SHIPPING_CENTS } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { MarketProvider } from "@/components/MarketProvider";
+import { FavoritesProvider } from "@/components/FavoritesProvider";
+import { HelpAssistant } from "@/components/HelpAssistant";
 import { getMarket } from "@/lib/market-server";
 
 export const metadata: Metadata = {
@@ -62,10 +64,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <MarketProvider market={market}>
           <CartProvider>
+            <FavoritesProvider>
             <Ticker label="Nos engagements" items={promises} />
             <Header />
             <main id="contenu">{children}</main>
             <Footer />
+            <HelpAssistant />
+            </FavoritesProvider>
           </CartProvider>
         </MarketProvider>
       </body>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FavoriteButton } from "./FavoritesProvider";
 import { displayName, type Product } from "@/lib/catalog";
 import { stockLabel } from "@/lib/format";
 import { PriceTag, PromoFlag } from "./PriceTag";
@@ -21,6 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="product-card">
       <PromoFlag product={product} />
+      <FavoriteButton id={String(product.id)} name={`${product.brand} ${name}`} />
       <Link href={`/produit/${product.slug}`} className="product-card-link">
         <div className="product-card-visual">
           <ProductImage src={product.image_url} alt={`${product.brand} ${name}`} category={product.category_slug} brand={product.brand} />
