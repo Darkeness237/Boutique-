@@ -6,8 +6,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Product } from "@/lib/product";
 import type { StepKey } from "@/lib/configurator";
 
-// Vue 3D stylisée : les fournisseurs ne fournissent pas de modèles 3D, chaque pièce est donc dessinée à partir
-// de ses caractéristiques (format, longueur, nombre de barrettes, éclairage RGB…). Unité : 1 = 1 cm.
+// Les fournisseurs ne fournissent pas de modèles 3D. Chaque pièce est d'abord dessinée à partir de ses
+// caractéristiques (format, longueur, nombre de barrettes…), puis remplacée par sa vraie photo, détourée,
+// dès qu'elle est chargée : on voit exactement le produit choisi. Unité : 1 = 1 cm.
 
 type Parts = Partial<Record<StepKey, Product>>;
 export type View = "pc" | "desk";
@@ -75,12 +76,137 @@ function fan(radius: number, rgb: boolean) {
   return g;
 }
 
+
+type PhotoMode = "stand" | "flat";
+
+/** Marque un groupe comme « pièce à remplacer par sa photo ». */
+function slot(parent: THREE.Object3D, product: Product | undefined, mode: PhotoMode = "stand"): THREE.Group {
+  const g = new THREE.Group();
+  if (product?.image_url) g.userData.photo = { url: product.image_url, mode };
+  parent.add(g);
+  return g;
+}
+
+type Cutout = { texture: THREE.Texture; aspect: number };
+const cutouts = new Map<string, Promise<Cutout | null>>();
+
+/** Charge une photo et retire le fond blanc (remplissage depuis les bords, l'intérieur blanc du produit est gardé). */
+function loadCutout(url: string): Promise<Cutout | null> {
+  let p = cutouts.get(url);
+  if (p) return p;
+  p = new Promise<Cutout | null>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onerror = () => resolve(null);
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, 640 / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h);
+        const px = data.data;
+        const isBg = (i: number) => {
+          const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2];
+          return r > 232 && g > 232 && b > 232 && Math.max(r, g, b) - Math.min(r, g, b) < 20;
+        };
+        const seen = new Uint8Array(w * h);
+        const stack: number[] = [];
+        for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+        for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+        while (stack.length) {
+          const i = stack.pop()!;
+          if (seen[i] || !isBg(i)) continue;
+          seen[i] = 1;
+          px[i * 4 + 3] = 0;
+          const x = i % w;
+          if (x > 0) stack.push(i - 1);
+          if (x < w - 1) stack.push(i + 1);
+          if (i >= w) stack.push(i - w);
+          if (i < w * (h - 1)) stack.push(i + w);
+        }
+        // Recadrage sur le produit.
+        let x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (let y = 0; y < h; y++)
+          for (let x = 0; x < w; x++)
+            if (px[(y * w + x) * 4 + 3] > 0) {
+              if (x < x0) x0 = x;
+              if (x > x1) x1 = x;
+              if (y < y0) y0 = y;
+              if (y > y1) y1 = y;
+            }
+        if (x1 < x0) return resolve(null);
+        ctx.putImageData(data, 0, 0);
+        const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+        const out = document.createElement("canvas");
+        out.width = cw;
+        out.height = ch;
+        out.getContext("2d")!.drawImage(canvas, x0, y0, cw, ch, 0, 0, cw, ch);
+        const texture = new THREE.CanvasTexture(out);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = 4;
+        resolve({ texture, aspect: cw / ch });
+      } catch {
+        resolve(null); // Image sans autorisation CORS : la forme dessinée reste affichée.
+      }
+    };
+    img.src = url;
+  });
+  cutouts.set(url, p);
+  return p;
+}
+
+/** Remplace chaque pièce marquée par sa photo détourée, à sa place et à sa taille réelle. */
+function applyPhotos(root: THREE.Object3D, stillCurrent: () => boolean) {
+  root.updateMatrixWorld(true);
+  const tagged: THREE.Object3D[] = [];
+  root.traverse((o) => o.userData.photo && tagged.push(o));
+  for (const obj of tagged) {
+    const { url, mode } = obj.userData.photo as { url: string; mode: PhotoMode };
+    const bounds = new THREE.Box3().setFromObject(obj);
+    if (bounds.isEmpty()) continue;
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    loadCutout(url).then((cut) => {
+      if (!cut || !stillCurrent()) return;
+      const big = Math.max(size.x, size.y, size.z);
+      if (mode === "flat") {
+        // Posée à plat (clavier) : la photo vue de dessus, à la largeur de la pièce.
+        const w = size.x;
+        const d = Math.min(w / cut.aspect, size.z * 1.6);
+        const plane = new THREE.Mesh(
+          new THREE.PlaneGeometry(d * cut.aspect, d),
+          new THREE.MeshBasicMaterial({ map: cut.texture, alphaTest: 0.5, toneMapped: false, side: THREE.DoubleSide }),
+        );
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.set(center.x, bounds.min.y + 0.3, center.z);
+        root.add(plane);
+      } else {
+        // Debout, toujours tournée vers le visiteur : on voit la photo du produit sous tous les angles.
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: cut.texture, alphaTest: 0.5, toneMapped: false }));
+        const [sw, sh] = cut.aspect >= 1 ? [big, big / cut.aspect] : [big * cut.aspect, big];
+        sprite.scale.set(sw, sh, 1);
+        sprite.center.set(0.5, 0);
+        sprite.position.set(center.x, bounds.min.y, center.z);
+        root.add(sprite);
+      }
+      obj.visible = false;
+    });
+  }
+}
+
 /** Tour PC complète, posée à l'origine (base au sol). */
 function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
   const tower = new THREE.Group();
   const caseP = parts.case;
   const size = caseP?.subcategory === "mini-tour" ? [20, 40, 40] : caseP?.subcategory === "grand-tour" ? [24, 54, 50] : [22, 47, 45];
   const [W, H, D] = size;
+  // Photos des pièces seulement dans la vue « intérieur » ; dans le setup, la tour entière prend la photo du boîtier.
+  const part = (p: Product | undefined) => slot(tower, showGhosts ? p : undefined);
 
   // Boîtier : châssis sombre, panneau vitré côté visiteur.
   if (caseP || !showGhosts) {
@@ -123,13 +249,14 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
   const bw = atx ? 30.5 : 24.4;
   const boardY = H - 4 - bw / 2;
   if (parts.board) {
+    const host = part(parts.board);
     const b = box(0.3, bw, 24.4, mat(C.board, { metalness: 0.3 }));
     b.position.set(-W / 2 + 1.2, boardY, -D / 2 + 13.5);
-    tower.add(b);
+    host.add(b);
     // Dissipateurs des étages d'alimentation.
     const vrm = box(1.2, 2.5, 10, mat(C.metal, { metalness: 0.8, roughness: 0.3 }));
     vrm.position.set(-W / 2 + 2, boardY + bw / 2 - 3, -D / 2 + 10);
-    tower.add(vrm);
+    host.add(vrm);
   } else if (showGhosts) {
     const g = ghost(0.3, bw, 24.4);
     g.position.set(-W / 2 + 1.2, boardY, -D / 2 + 13.5);
@@ -141,9 +268,10 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
   if (parts.cpu) {
     const c = box(0.4, 4, 4, mat(C.metal, { metalness: 0.9, roughness: 0.25 }));
     c.position.copy(cpuPos);
-    tower.add(c);
+    part(parts.cpu).add(c);
   }
   const water = parts.cooler?.subcategory === "watercooling" || /watercooling|aio|liquid/i.test(parts.cooler?.name ?? "");
+  const coolerHost = part(parts.cooler);
   if (parts.cooler && !water) {
     const fins = new THREE.Group();
     for (let i = 0; i < 18; i++) {
@@ -152,26 +280,26 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
       fins.add(fin);
     }
     fins.position.set(cpuPos.x + 2.5, cpuPos.y + 1, cpuPos.z);
-    tower.add(fins);
+    coolerHost.add(fins);
     const f = fan(5.8, isRgb(parts.cooler));
     f.rotation.y = Math.PI / 2;
     f.position.set(cpuPos.x + 2.5, cpuPos.y + 1, cpuPos.z + 6.5);
-    tower.add(f);
+    coolerHost.add(f);
   } else if (parts.cooler && water) {
     const pump = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 2, 24), mat(C.dark));
     pump.rotation.z = Math.PI / 2;
     pump.position.set(cpuPos.x + 1.3, cpuPos.y, cpuPos.z);
-    tower.add(pump);
+    coolerHost.add(pump);
     const len = /420|3x140/i.test(parts.cooler.name) ? 45 : /360|3x120/i.test(parts.cooler.name) ? 39 : 27;
     const rad = box(12, 2.7, Math.min(len, D - 4), mat(C.dark, { metalness: 0.5 }));
     rad.position.set(0, H - 2.5, 0);
-    tower.add(rad);
+    coolerHost.add(rad);
     const n = Math.round(Math.min(len, D - 4) / 12.5);
     for (let i = 0; i < n; i++) {
       const f = fan(5.6, isRgb(parts.cooler));
       f.rotation.x = Math.PI / 2;
       f.position.set(0, H - 4.2, -Math.min(len, D - 4) / 2 + 6.2 + i * 12.5);
-      tower.add(f);
+      coolerHost.add(f);
     }
   } else if (showGhosts && parts.cpu) {
     const g = ghost(10, 12, 12);
@@ -181,6 +309,7 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
 
   // Mémoire : barrettes à droite du processeur.
   if (parts.ram) {
+    const host = part(parts.ram);
     const count = Number(parts.ram.name.match(/(\d) ?x/i)?.[1] ?? 2);
     for (let i = 0; i < Math.min(count, 4); i++) {
       const stick = box(3.2, 13.3, 0.7, mat(C.dark, { metalness: 0.5 }));
@@ -190,7 +319,7 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
         glow.position.set(1.6, 0, 0);
         stick.add(glow);
       }
-      tower.add(stick);
+      host.add(stick);
     }
   } else if (showGhosts && parts.board) {
     const g = ghost(3.2, 13.3, 4.4);
@@ -203,11 +332,11 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
     if (parts.storage.subcategory === "ssd-nvme") {
       const m2 = box(0.3, 2.2, 8, mat(C.pcb));
       m2.position.set(-W / 2 + 1.5, boardY - 4, -D / 2 + 14);
-      tower.add(m2);
+      part(parts.storage).add(m2);
     } else {
       const drive = box(7, 1, 10, mat(C.metal, { metalness: 0.7 }));
       drive.position.set(2, 3, D / 2 - 9);
-      tower.add(drive);
+      part(parts.storage).add(drive);
     }
   }
 
@@ -229,7 +358,7 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
     plate.position.set(-2.6, 0, 0);
     g.add(plate);
     g.position.set(-W / 2 + 4.5, gpuY, -D / 2 + 1 + L / 2);
-    tower.add(g);
+    part(parts.gpu).add(g);
   } else if (showGhosts && parts.board) {
     const g = ghost(5, 12, 24);
     g.position.set(-W / 2 + 4.5, gpuY, -D / 2 + 13);
@@ -240,7 +369,7 @@ function buildTower(parts: Parts, showGhosts: boolean): THREE.Group {
   if (parts.psu) {
     const psu = box(15, 8.6, 14, mat(0x1b1e25, { metalness: 0.4 }));
     psu.position.set(-W / 2 + 8, 4.8, -D / 2 + 8);
-    tower.add(psu);
+    part(parts.psu).add(psu);
   } else if (showGhosts && parts.board) {
     const g = ghost(15, 8.6, 14);
     g.position.set(-W / 2 + 8, 4.8, -D / 2 + 8);
@@ -285,12 +414,14 @@ function buildDesk(parts: Parts): THREE.Group {
   foot.position.y = 76;
   screen.add(panel, stand, foot);
   screen.position.set(0, 0, -20);
+  if (parts.screen?.image_url) screen.userData.photo = { url: parts.screen.image_url, mode: "stand" };
   if (!parts.screen) screen.traverse((o) => o instanceof THREE.Mesh && ((o.material as THREE.Material).opacity = 0.35, ((o.material as THREE.Material).transparent = true)));
   desk.add(screen);
 
   if (parts.keyboard) {
     const kb = box(44, 2.5, 14, mat(0x2c313d));
     kb.position.set(-5, 77, 18);
+    if (parts.keyboard.image_url) kb.userData.photo = { url: parts.keyboard.image_url, mode: "flat" };
     if (isRgb(parts.keyboard)) {
       const glow = box(42, 0.4, 12, new THREE.MeshStandardMaterial({ color: C.accent, emissive: C.accent, emissiveIntensity: 1.2 }));
       glow.position.y = 1.4;
@@ -302,6 +433,7 @@ function buildDesk(parts: Parts): THREE.Group {
     const mouse = new THREE.Mesh(new THREE.SphereGeometry(3.4, 24, 16), mat(0x2c313d));
     mouse.scale.set(0.9, 0.55, 1.6);
     mouse.position.set(30, 77.2, 18);
+    if (parts.mouse.image_url) mouse.userData.photo = { url: parts.mouse.image_url, mode: "stand" };
     desk.add(mouse);
   }
   if (parts.headset) {
@@ -313,6 +445,7 @@ function buildDesk(parts: Parts): THREE.Group {
     r.position.set(9, -1, 0);
     hs.add(band, l, r);
     hs.position.set(-55, 90, -10);
+    if (parts.headset.image_url) hs.userData.photo = { url: parts.headset.image_url, mode: "stand" };
     desk.add(hs);
   }
   if (parts.chair) {
@@ -329,19 +462,23 @@ function buildDesk(parts: Parts): THREE.Group {
     base.position.y = 4;
     chair.add(seat, back, stripe, post, base);
     chair.position.set(0, 0, 75);
+    if (parts.chair.image_url) chair.userData.photo = { url: parts.chair.image_url, mode: "stand" };
     desk.add(chair);
   }
 
   // La tour, posée au sol à droite du bureau.
   const tower = buildTower(parts, false);
   tower.position.set(100, 0, -5);
+  if (parts.case?.image_url) tower.userData.photo = { url: parts.case.image_url, mode: "stand" };
   desk.add(tower);
   return desk;
 }
 
 function disposeGroup(g: THREE.Object3D) {
   g.traverse((o) => {
-    if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments) {
+    if (o instanceof THREE.Sprite) {
+      o.material.dispose(); // La texture reste en cache : elle resservira si la pièce est rechoisie.
+    } else if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments) {
       o.geometry.dispose();
       const m = o.material as THREE.Material | THREE.Material[];
       (Array.isArray(m) ? m : [m]).forEach((x) => x.dispose());
@@ -403,6 +540,7 @@ export default function Scene3D({ parts, view }: { parts: Parts; view: View }) {
         }
         content = g;
         scene.add(g);
+        applyPhotos(g, () => content === g);
         if (v !== currentView) {
           currentView = v;
           if (v === "pc") {

@@ -27,7 +27,7 @@ export const STEPS: Step[] = [
   { key: "cooler", label: "Refroidissement", category: "refroidissement", subcategories: ["ventirads", "watercooling"], phase: "pc", hint: "Ventirad ou watercooling pour le processeur." },
   { key: "psu", label: "Alimentation", category: "alimentations", phase: "pc", hint: "Puissance calculée d'après le processeur et la carte graphique." },
   { key: "case", label: "Boîtier", category: "boitiers", subcategories: ["moyen-tour", "mini-tour", "grand-tour"], phase: "pc", hint: "Le boîtier qui accueille tout le reste." },
-  { key: "screen", label: "Écran", category: "ecrans", subcategories: ["27-et-plus", "moins-27", "incurves"], phase: "setup", optional: true, hint: "Pour compléter le setup." },
+  { key: "screen", label: "Écran", category: "ecrans", subcategories: ["27-et-plus", "moins-27", "incurves"], skipName: /filtre|confidentialit|support|bras|c[âa]ble|housse/i, phase: "setup", optional: true, hint: "Pour compléter le setup." },
   { key: "keyboard", label: "Clavier", category: "peripheriques", subcategories: ["claviers"], phase: "setup", optional: true, hint: "Mécanique ou membrane." },
   { key: "mouse", label: "Souris", category: "peripheriques", subcategories: ["souris"], phase: "setup", optional: true, hint: "Filaire ou sans fil." },
   { key: "headset", label: "Casque", category: "peripheriques", subcategories: ["casques"], phase: "setup", optional: true, hint: "Pour jouer et discuter." },
