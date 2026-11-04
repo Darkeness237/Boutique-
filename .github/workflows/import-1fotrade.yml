@@ -42,9 +42,14 @@ jobs:
           mkdir -p ~/.ssh incoming
           # Clé du serveur enregistrée avant connexion (port SSH des Storage Box : 23).
           ssh-keyscan -p 23 -t ed25519,rsa "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          LATEST=$(lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "set sftp:auto-confirm no; cls -1 --sort=date *.csv *.CSV *.txt; bye" 2>/dev/null | head -n 1 || true)
+          # Liste complète (les erreurs de connexion font échouer la tâche au lieu d'être masquées).
+          lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "set sftp:auto-confirm no; cls -l --sort=date; bye" > listing.txt
+          echo "Contenu de la Storage Box (plus récent en premier) :"
+          head -n 20 listing.txt
+          LATEST=$(lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "set sftp:auto-confirm no; cls -1 --sort=date; bye" \
+            | grep -iE '\.(csv|txt)$' | head -n 1 || true)
           if [ -z "$LATEST" ]; then
-            echo "Aucun fichier déposé par 1foTrade pour l'instant."
+            echo "Aucun fichier CSV déposé par 1foTrade pour l'instant."
             echo "FILE=" >> "$GITHUB_ENV"
             exit 0
           fi
