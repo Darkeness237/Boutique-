@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FieldErrors } from "@/lib/auth-schema";
+import { CAMEROON_ENABLED } from "@/lib/market";
 
 export type Zone = { slug: string; city: string };
 type Values = Record<string, string | boolean> | undefined;
@@ -85,7 +86,7 @@ export function DeliveryFields({
           {(
             [
               ["fr", "France"],
-              ["cm", "Cameroun"],
+              ...(CAMEROON_ENABLED || country === "cm" ? ([["cm", "Cameroun"]] as const) : []),
             ] as const
           ).map(([value, label]) => (
             <label key={value} className={country === value ? "is-on" : undefined}>

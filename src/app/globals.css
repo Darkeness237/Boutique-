@@ -1932,6 +1932,40 @@ tr.is-read {
   max-width: 72ch;
 }
 
+/* Configs complètes --------------------------------------------------- */
+
+.configs-page {
+  padding-bottom: 72px;
+}
+
+.configs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.config-pitch {
+  margin: 12px 0 6px;
+  color: var(--bench-ink);
+}
+
+.config-usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.config-usage li {
+  padding: 3px 10px;
+  border: 1px solid var(--bench-line);
+  border-radius: 999px;
+  color: var(--bench-muted);
+  font-size: 0.8125rem;
+}
+
 /* Pages légales ------------------------------------------------------ */
 
 .prose {

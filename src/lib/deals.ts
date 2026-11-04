@@ -5,7 +5,7 @@ export type Deal = { category: string; maxPct: number; label: string; endsAt: st
 /** Offres en cours d'un rayon, calculées à partir des produits (les promotions elles-mêmes restent privées). */
 export async function dealsIn(category: string, limit = 24): Promise<Deal | null> {
   // Large échantillon pour que « jusqu'à −X % » soit exact, puis on ne garde que les meilleures remises.
-  const items = await inStock(category, { promoOnly: true, withImage: true }, 400);
+  const items = await inStock(category, { promoOnly: true, withImage: true, promotedOnly: true }, 400);
   const promos = items.map((p) => ({ p, promo: activePromo(p) })).filter((x) => x.promo);
   if (!promos.length) return null;
   promos.sort((a, b) => b.promo!.pct - a.promo!.pct);

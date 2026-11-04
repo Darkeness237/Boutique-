@@ -19,10 +19,14 @@ const day = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", ti
 
 // Rayons mis en avant : produits en stock, avec photo, au-dessus d'un prix plancher
 // (pour ne pas exposer en vitrine des bouchons ou des adaptateurs).
+// Rayons où nous sommes compétitifs face aux grandes enseignes (voir docs/module-pricing.md) :
+// les produits d'appel (cartes graphiques, processeurs) restent au catalogue sans être mis en avant.
 const RAILS: { category: string; title: string; minEuros: number }[] = [
-  { category: "cartes-graphiques", title: "Cartes graphiques en stock", minEuros: 250 },
-  { category: "stockage", title: "SSD et stockage", minEuros: 40 },
+  { category: "refroidissement", title: "Refroidissement : ventirads et watercooling", minEuros: 40 },
   { category: "boitiers", title: "Boîtiers", minEuros: 60 },
+  { category: "alimentations", title: "Alimentations certifiées", minEuros: 50 },
+  { category: "peripheriques", title: "Claviers, souris et casques gaming", minEuros: 30 },
+  { category: "stockage", title: "SSD et stockage", minEuros: 40 },
 ];
 
 const COVER_MIN_EUROS: Record<string, number> = {
@@ -105,8 +109,8 @@ export default async function HomePage() {
     cm
       ? Promise.resolve([] as Deal[])
       : Promise.all(DEAL_CATEGORIES.map((c) => dealsIn(c))).then((l) => l.filter((d): d is Deal => d !== null)),
-    Promise.all(RAILS.map((r) => inStock(r.category, { minPriceCents: r.minEuros * 100, withImage: true, market }, 14))),
-    inStock(null, { withImage: true, minPriceCents: 500, maxPriceCents: 2000, market }, 16),
+    Promise.all(RAILS.map((r) => inStock(r.category, { minPriceCents: r.minEuros * 100, withImage: true, promotedOnly: true, market }, 14))),
+    inStock(null, { withImage: true, minPriceCents: 500, maxPriceCents: 2000, promotedOnly: true, market }, 16),
     Promise.all(
       categories.map(async (c) => {
         const list = await inStock(c.slug, { minPriceCents: (COVER_MIN_EUROS[c.slug] ?? 10) * 100, withImage: true, market }, 5);
@@ -193,8 +197,8 @@ export default async function HomePage() {
             La compatibilité est vérifiée pour vous : même socket, bon type de mémoire, alimentation assez puissante. La
             config ci-contre est composée avec ce que nous avons en stock aujourd&apos;hui.
           </p>
-          <Link href="/catalogue/processeurs?dispo=1" className="btn btn-quiet btn-lg">
-            Composer ma config
+          <Link href="/configs" className="btn btn-quiet btn-lg">
+            Voir les 3 configs complètes
           </Link>
         </div>
         <BuildPanel />

@@ -12,7 +12,7 @@ export { activePromo, displayName, effectivePrice } from "./product";
 
 // Une seule chaîne littérale : le client Supabase en déduit le type des lignes.
 export const PRODUCT_COLUMNS =
-  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max, ean, cm_kg";
+  "id, slug, name, brand, category_slug, subcategory, price_cents, in_stock, lead_days, socket, memory, psu_watts, image_url, specs, media_source, promo_price_cents, promo_label, promo_ends_at, reference_price_cents, price_xaf, cm_days_min, cm_days_max, ean, cm_kg, promote";
 
 export const PAGE_SIZE = 24;
 
@@ -154,6 +154,8 @@ export type StockFilter = Partial<Pick<Product, "socket" | "memory" | "subcatego
   nameMatches?: string[];
   withImage?: boolean;
   promoOnly?: boolean;
+  /** Seulement les produits mis en avant (rayons rentables, prix compétitif). */
+  promotedOnly?: boolean;
   excludeId?: number;
   market?: Market;
 };
@@ -171,6 +173,7 @@ export async function inStock(category: string | null, f: StockFilter = {}, limi
   if (f.withImage) query = query.not("image_url", "is", null);
   if (f.promoOnly) query = query.not("promo_price_cents", "is", null).gt("promo_ends_at", new Date().toISOString());
   if (f.excludeId) query = query.neq("id", f.excludeId);
+  if (f.promotedOnly) query = query.eq("promote", true);
   if (f.market === "cm") query = query.not("price_xaf", "is", null);
   // Motifs fixés dans le code (jamais issus d'une saisie) : au moins un doit correspondre.
   if (f.nameMatches?.length) query = query.or(f.nameMatches.map((m) => `name.ilike.*${m}*`).join(","));
@@ -187,6 +190,7 @@ export async function getSupplierDeals(limit = 12): Promise<Product[]> {
     .eq("in_stock", true)
     .eq("has_image", true)
     .eq("promo_label", "Bon plan fournisseur")
+    .eq("promote", true)
     .not("promo_price_cents", "is", null)
     .gt("promo_ends_at", new Date().toISOString())
     .limit(120);

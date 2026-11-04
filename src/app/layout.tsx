@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · Silicium",
   },
   description:
-    "Processeurs, cartes graphiques, cartes mères et périphériques gaming. Compatibilité vérifiée sur chaque fiche, livraison en France et au Cameroun.",
+    "Processeurs, cartes graphiques, cartes mères et périphériques gaming. Compatibilité vérifiée sur chaque fiche, configs PC complètes, livraison partout en France.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: { siteName: "Silicium", locale: "fr_FR", type: "website" },
   // Codes de validation de Google Search Console et Bing, à renseigner dans Netlify.

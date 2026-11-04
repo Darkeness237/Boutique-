@@ -31,6 +31,8 @@ export type Product = {
   ean: string | null;
   /** Poids d'expédition estimé (kg, emballage compris), pour la livraison au Cameroun. */
   cm_kg: number | null;
+  /** Mis en avant (accueil, bannières, Google Shopping) : rayon rentable et prix compétitif. */
+  promote: boolean;
 };
 
 /** Promotion en cours (la date de fin est revérifiée ici, au cas où la base n'a pas encore été rafraîchie). */

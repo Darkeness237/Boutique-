@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   // (Cameroun : prix en FCFA ; ailleurs : prix en euros), sauf si le visiteur a choisi lui-même
   // avec le sélecteur (cookie marche_choix), auquel cas son choix est respecté.
   let market: string | null = null;
-  if (!request.cookies.get(MARKET_CHOICE_COOKIE)) {
+  if (process.env.NEXT_PUBLIC_CAMEROUN === "1" && !request.cookies.get(MARKET_CHOICE_COOKIE)) {
     const country = guessCountry(request);
     const current = request.cookies.get("marche")?.value;
     const guessed = country ? (country === "CM" ? "cm" : "fr") : (current ?? "fr");

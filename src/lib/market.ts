@@ -10,8 +10,14 @@ export const MARKETS: Record<Market, { label: string; country: string; currency:
   cm: { label: "Cameroun", country: "Cameroun", currency: "XAF" },
 };
 
+/**
+ * Le Cameroun s'ouvre plus tard : tant que NEXT_PUBLIC_CAMEROUN ne vaut pas « 1 », tout le site reste sur la France
+ * (prix en euros, pas de sélecteur de pays ni de détection automatique). Les données et le code restent prêts.
+ */
+export const CAMEROON_ENABLED = process.env.NEXT_PUBLIC_CAMEROUN === "1";
+
 export function parseMarket(value: string | undefined | null): Market {
-  return value === "cm" ? "cm" : "fr";
+  return CAMEROON_ENABLED && value === "cm" ? "cm" : "fr";
 }
 
 const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });

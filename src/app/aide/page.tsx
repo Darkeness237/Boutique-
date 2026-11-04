@@ -3,10 +3,11 @@ import Link from "next/link";
 import { FREE_SHIPPING_CENTS, SHIPPING_CENTS } from "@/lib/cart";
 import { SUPPORT_EMAIL, whatsappLink } from "@/lib/contact";
 import { formatPrice } from "@/lib/format";
+import { CAMEROON_ENABLED } from "@/lib/market";
 
 export const metadata: Metadata = {
   title: "Centre d'aide",
-  description: "Commander, livraison en France et au Cameroun, paiement, garantie, retours et suivi de commande.",
+  description: "Commander, livraison, paiement, garantie, retours et suivi de commande.",
 };
 
 const SECTIONS: { id: string; title: string; items: [string, React.ReactNode][] }[] = [
@@ -34,7 +35,7 @@ const SECTIONS: { id: string; title: string; items: [string, React.ReactNode][] 
     items: [
       ["France", <>Carte bancaire, Apple Pay ou Google Pay, sur la page sécurisée de Stripe. Nous ne voyons jamais votre numéro de carte.</>],
       ["Cameroun", <>Le paiement par Orange Money et MTN MoMo arrive bientôt. En attendant, contactez-nous pour commander.</>],
-      ["Les prix sont-ils TTC ?", <>Oui en France (TVA non applicable, art. 293 B du CGI). Au Cameroun, les prix sont sans TVA française, avec la TVA camerounaise et la douane comprises.</>],
+      ["Les prix sont-ils TTC ?", <>Oui : ce sont les prix que vous payez (TVA non applicable, art. 293 B du CGI).</>],
     ],
   },
   {
@@ -69,7 +70,7 @@ export default function HelpCenter() {
       {SECTIONS.map((s) => (
         <section key={s.id} id={s.id} className="help-section" aria-labelledby={`${s.id}-t`}>
           <h2 id={`${s.id}-t`}>{s.title}</h2>
-          {s.items.map(([q, a]) => (
+          {s.items.filter(([q]) => CAMEROON_ENABLED || q !== "Cameroun").map(([q, a]) => (
             <details key={q} className="faq">
               <summary>{q}</summary>
               <p>{a}</p>

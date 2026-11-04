@@ -6,6 +6,7 @@ import { CategoryDrawer } from "./CategoryDrawer";
 import { Logo } from "./Logo";
 import { MarketSwitch } from "./MarketSwitch";
 import { getMarket } from "@/lib/market-server";
+import { CAMEROON_ENABLED } from "@/lib/market";
 import { hasSessionCookie } from "@/lib/supabase-server";
 
 export async function Header() {
@@ -29,7 +30,7 @@ export async function Header() {
           </button>
         </form>
         <nav className="header-actions" aria-label="Pays, compte et panier">
-          <MarketSwitch />
+          {CAMEROON_ENABLED && <MarketSwitch />}
           <Link href={signedIn ? "/compte" : "/connexion"} className="header-link">
             {signedIn ? "Mon compte" : "Se connecter"}
           </Link>
@@ -46,7 +47,7 @@ export async function Header() {
                 Offres du moment
               </Link>
             )}
-            <Link href="/#config">Config du moment</Link>
+            <Link href="/configs">Configs PC complètes</Link>
             <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Petits prix</Link>
             <Link href="/catalogue/cartes-graphiques?dispo=1">Cartes graphiques</Link>
             <Link href="/suivi" className="shortcut-help">Suivre ma commande</Link>
