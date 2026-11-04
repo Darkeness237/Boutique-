@@ -24,6 +24,38 @@ const SUPPLIERS = {
       "Écran", "Souris", "Clavier", "Casque", "Tapis de Souris", "Pack Clavier - Souris", "Périphérique de Jeu", "Fauteuil",
     ],
   },
+  // Catalogue Picata (https://www.picata.fr/pro/catalogue.csv?ean=1) : séparateur « ; », UTF-8, prix HT avec un
+  // point, éco-participation à part (ajoutée au coût), stock en quantité. Les catégories Picata sont ramenées
+  // aux familles 1foTrade pour que le classement en rayons et sous-rayons soit le même quel que soit le fournisseur.
+  picata: {
+    separator: ";",
+    columns: { sku: "Référence", ean: "Ean", mpn: "Réf Constructeur", family: "Catégorie", name: "Libellé", cost: "Px HT", stock: "Stock Dispo Achard", brand: "Constructeur", ecotax: "Eco Taxe" },
+    inStock: (v) => Number.parseInt(v, 10) > 0,
+    familyMap: {
+      "Processeur": "Processeur",
+      "Carte mère": "Carte Mère",
+      "Carte graphique": "Carte Graphique",
+      "Mémoire PC": "Mémoire RAM",
+      "Disque SSD": "Stockage",
+      'Disque dur 3.5" interne': "Stockage",
+      "Clé USB": "Stockage",
+      "Alimentation": "Alimentation PC",
+      "Boîtier PC": "Boîtier PC",
+      "Watercooling": "Watercooling",
+      "Ventilateur CPU": "Ventilateur pour Processeur",
+      "Ventilateur boîtier": "Ventilateur de Boîtier",
+      "Accessoire refroidissement PC": "Autres Eléments de Refroidissement",
+      "Accessoires watercooling": "Autres Eléments de Refroidissement",
+      "Ecran PC": "Écran",
+      "Souris PC": "Souris",
+      "Clavier PC": "Clavier",
+      "Micro-casque": "Casque",
+      "Tapis de souris": "Tapis de Souris",
+      "Pack Clavier/Souris": "Pack Clavier - Souris",
+      "Périphérique de jeu": "Périphérique de Jeu",
+      "Siège PC": "Fauteuil",
+    },
+  },
 };
 
 const BATCH = 1000;
@@ -83,19 +115,24 @@ const col = Object.fromEntries(
   }),
 );
 
-const families = new Set(config.families);
+const families = new Set(config.families ?? Object.values(config.familyMap));
 const clip = (s, n) => s.trim().slice(0, n);
 let skipped = 0;
 
 const offers = [];
 for (const r of raw.slice(1)) {
-  const family = clip(r[col.family] ?? "", 128);
+  const rawFamily = clip(r[col.family] ?? "", 128);
+  const family = config.familyMap ? (config.familyMap[rawFamily] ?? "") : rawFamily;
   if (!families.has(family)) continue;
-  const cost = Number.parseFloat((r[col.cost] ?? "").replace(",", "."));
+  const num = (v) => Number.parseFloat((v ?? "").replace(",", "."));
+  const ecotax = col.ecotax !== undefined ? num(r[col.ecotax]) || 0 : 0;
+  const cost = num(r[col.cost]) + ecotax;
   const sku = clip(r[col.sku] ?? "", 64);
   const name = clip(r[col.name] ?? "", 300);
   if (!sku || !name || !Number.isFinite(cost) || cost <= 0 || cost > 100000) { skipped++; continue; }
-  const ean = (r[col.ean] ?? "").trim();
+  // EAN-13 : les codes UPC à 11 ou 12 chiffres sont complétés par des zéros, comme chez les autres fournisseurs.
+  let ean = (r[col.ean] ?? "").trim();
+  if (/^[0-9]{11,12}$/.test(ean)) ean = ean.padStart(13, "0");
   offers.push({
     sku,
     ean: /^[0-9]{8,14}$/.test(ean) ? ean : "",
