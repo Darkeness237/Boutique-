@@ -1,0 +1,55 @@
+# Catalogue Picata (second fournisseur) : téléchargé avec la clé personnelle (secret PICATA_API_KEY, envoyée
+# dans l'en-tête X-Api-Key, jamais dans l'adresse), puis importé dans Supabase comme celui de 1foTrade.
+# La base retient ensuite, pour chaque produit (EAN), l'offre la plus intéressante entre les fournisseurs.
+name: Import catalogue Picata
+
+on:
+  schedule:
+    - cron: "47 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "inspecter (affiche l'en-tête du fichier) ou importer"
+        default: importer
+
+permissions:
+  contents: read
+
+concurrency:
+  group: import-picata
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Télécharger le catalogue Picata
+        env:
+          PICATA_API_KEY: ${{ secrets.PICATA_API_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p incoming
+          curl -sS -f --retry 3 -H "X-Api-Key: $PICATA_API_KEY" "https://www.picata.fr/pro/catalogue.csv?ean=1" \
+            -o incoming/picata.csv -w "HTTP %{http_code} - %{size_download} octets\n"
+          echo "Lignes : $(wc -l < incoming/picata.csv)"
+          echo "Encodage : $(file -b --mime-encoding incoming/picata.csv)"
+
+      - name: Aperçu du format
+        if: github.event.inputs.mode == 'inspecter'
+        run: |
+          echo "En-tête :"; head -n 1 incoming/picata.csv
+          echo "Exemples :"; sed -n '2,4p' incoming/picata.csv | cut -c1-400
+
+      - name: Importer dans Supabase
+        if: github.event.inputs.mode != 'inspecter'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
+        run: node scripts/import-fournisseur.mjs picata incoming/picata.csv
