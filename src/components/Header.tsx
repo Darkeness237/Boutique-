@@ -47,6 +47,7 @@ export async function Header() {
                 Offres du moment
               </Link>
             )}
+            <Link href="/configurateur">Configurateur 3D</Link>
             <Link href="/configs">Configs PC complètes</Link>
             <Link href="/catalogue?dispo=1&prixMax=20&tri=prix-croissant">Petits prix</Link>
             <Link href="/catalogue/cartes-graphiques?dispo=1">Cartes graphiques</Link>

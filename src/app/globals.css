@@ -3564,3 +3564,334 @@ tr.is-read {
   display: grid;
   gap: 6px;
 }
+
+/* Configurateur 3D */
+
+.configurator {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(16px, 2.5vw, 28px);
+  align-items: start;
+}
+
+.cfg-stage {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.cfg-view-toggle {
+  justify-self: start;
+}
+
+.scene3d {
+  width: 100%;
+  height: clamp(320px, 62vh, 620px);
+  border-radius: var(--radius-m);
+  background: radial-gradient(ellipse at 50% 35%, #2b3140 0%, var(--bench) 70%);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.scene3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.scene3d-loading {
+  display: grid;
+  place-items: center;
+  color: var(--bench-muted);
+}
+
+.cfg-stage-hint {
+  margin: 0;
+}
+
+.cfg-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cfg-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cfg-steps li {
+  display: contents;
+}
+
+.cfg-steps-sep {
+  flex-basis: 100%;
+  height: 0;
+}
+
+.cfg-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.cfg-step-num {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--paper);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.cfg-step.is-done .cfg-step-num {
+  background: var(--ok);
+  color: #fff;
+}
+
+.cfg-step.is-current {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 1px var(--signal);
+}
+
+.cfg-step.is-current .cfg-step-num {
+  background: var(--signal);
+  color: #fff;
+}
+
+.cfg-choose {
+  display: grid;
+  gap: 12px;
+  padding: clamp(16px, 2.5vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+}
+
+.cfg-choose-head h2 {
+  margin: 0;
+  font-size: var(--step-2);
+}
+
+.cfg-choose-head .field-hint {
+  margin: 4px 0 0;
+}
+
+.cfg-phase {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cfg-optional {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.cfg-tools {
+  display: grid;
+  gap: 8px;
+}
+
+.cfg-subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.chip.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.cfg-filter {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  font: inherit;
+}
+
+.cfg-options {
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-inline: -6px;
+  padding-inline: 6px;
+}
+
+.cfg-options ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cfg-option {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cfg-option:hover {
+  border-color: var(--line-strong);
+  background: var(--paper);
+}
+
+.cfg-option.is-on {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 1px var(--signal);
+}
+
+.cfg-option-img {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.cfg-option-img img,
+.cfg-option-img svg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cfg-option-img .visual-brand {
+  display: none;
+}
+
+.cfg-option-text {
+  display: grid;
+  min-width: 0;
+}
+
+.cfg-option-name {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.cfg-option-meta {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.cfg-option-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cfg-blocked {
+  margin: 0;
+  color: var(--muted);
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--signal);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cfg-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cfg-remove {
+  margin-left: 8px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--bench-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cfg-remove:hover {
+  color: var(--ko-bright);
+}
+
+.cfg-summary .field-hint {
+  color: var(--bench-muted);
+}
+
+@media (max-width: 900px) {
+  .configurator {
+    grid-template-columns: 1fr;
+  }
+  .cfg-stage {
+    position: static;
+  }
+  .scene3d {
+    height: clamp(280px, 52vh, 420px);
+  }
+  .cfg-options {
+    max-height: 360px;
+  }
+}
+
+.config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

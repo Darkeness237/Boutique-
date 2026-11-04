@@ -197,9 +197,14 @@ export default async function HomePage() {
             La compatibilité est vérifiée pour vous : même socket, bon type de mémoire, alimentation assez puissante. La
             config ci-contre est composée avec ce que nous avons en stock aujourd&apos;hui.
           </p>
-          <Link href="/configs" className="btn btn-quiet btn-lg">
-            Voir les 3 configs complètes
-          </Link>
+          <div className="config-actions">
+            <Link href="/configurateur" className="btn btn-primary btn-lg">
+              Composer mon PC en 3D
+            </Link>
+            <Link href="/configs" className="btn btn-quiet btn-lg">
+              Voir les 3 configs complètes
+            </Link>
+          </div>
         </div>
         <BuildPanel />
       </section>
