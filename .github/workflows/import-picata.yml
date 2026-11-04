@@ -40,7 +40,7 @@ jobs:
           echo "Lignes : $(wc -l < incoming/picata.csv)"
           echo "Encodage : $(file -b --mime-encoding incoming/picata.csv)"
 
-      - name: Aperçu du format (noms de colonnes et types seulement : le dépôt est public)
+      - name: "Aperçu du format (noms de colonnes et types seulement, le dépôt est public)"
         if: github.event.inputs.mode == 'inspecter'
         run: |
           python3 - <<'PY'
