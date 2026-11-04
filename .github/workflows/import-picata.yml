@@ -64,6 +64,18 @@ jobs:
               print(f"  {i:2d}. {col!r:32} {kind:7} rempli {len(filled)}/{len(vals)}, {distinct} valeurs distinctes")
           PY
 
+      - name: Vérifier la présence des secrets (oui ou non, jamais la valeur)
+        env:
+          A: ${{ secrets.SUPABASE_URL }}
+          B: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          C: ${{ secrets.IMPORT_TOKEN }}
+          D: ${{ secrets.PICATA_API_KEY }}
+        run: |
+          for v in "SUPABASE_URL:$A" "SUPABASE_PUBLISHABLE_KEY:$B" "IMPORT_TOKEN:$C" "PICATA_API_KEY:$D"; do
+            n="${v%%:*}"; val="${v#*:}"
+            if [ -n "$val" ]; then echo "$n : présent (${#val} caractères)"; else echo "$n : ABSENT"; fi
+          done
+
       - name: Importer dans Supabase
         if: github.event.inputs.mode != 'inspecter'
         env:
