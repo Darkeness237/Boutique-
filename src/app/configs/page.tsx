@@ -19,8 +19,7 @@ export default async function ConfigsPage() {
         <h1>Configs PC prêtes à commander</h1>
         <p className="lede">
           Processeur, carte mère, mémoire, stockage, refroidissement, alimentation et boîtier : tout est compatible et en stock
-          aujourd&apos;hui. Ajoutez la config entière au panier en un clic, puis remplacez une pièce si vous le souhaitez. Envie de tout choisir vous-même ?{" "}
-          <Link href="/configurateur">Ouvrir le configurateur 3D</Link>.
+          aujourd&apos;hui. Ajoutez la config entière au panier en un clic, puis remplacez une pièce si vous le souhaitez.
         </p>
       </div>
       {builds.length === 0 ? (
