@@ -57,13 +57,21 @@ jobs:
           lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "get \"$LATEST\" -o incoming/catalogue.csv; bye"
           echo "FILE=incoming/catalogue.csv" >> "$GITHUB_ENV"
 
-      - name: Format du fichier (en-tête seulement, jamais de prix)
+      - name: Format du fichier (structure seulement, prix masqués)
         if: env.FILE != ''
         run: |
-          echo "Lignes : $(wc -l < "$FILE")"
-          echo "Encodage : $(file -b "$FILE")"
-          echo "En-tête :"
-          head -n 1 "$FILE" | iconv -f "$(file -b --mime-encoding "$FILE" | sed 's/unknown-8bit/latin1/')" -t utf-8 2>/dev/null || head -n 1 "$FILE"
+          python3 - "$FILE" <<'PY'
+          import csv, sys, re, collections
+          rows = list(csv.DictReader(open(sys.argv[1], encoding="utf-8-sig", newline=""), delimiter=";"))
+          print("Produits :", len(rows), "| colonnes :", list(rows[0].keys()))
+          mask = lambda v: re.sub(r"\d", "9", v)
+          print("Format des prix :", collections.Counter(mask(r["PRIX"]) for r in rows).most_common(4))
+          print("Format des poids :", collections.Counter(mask(r["POIDS"]) for r in rows).most_common(3))
+          print("Valeurs de stock :", collections.Counter(mask(r["STOCK"]) for r in rows).most_common(6))
+          print("Catégories :", collections.Counter(r["CATEGORIE"] for r in rows).most_common(80))
+          for r in rows[:3]:
+              print({k: (mask(v) if k == "PRIX" else v) for k, v in r.items()})
+          PY
 
       - name: Importer dans Supabase
         if: env.FILE != ''
