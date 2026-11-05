@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
       <FavoriteButton id={String(product.id)} name={`${product.brand} ${name}`} />
       <Link href={`/produit/${product.slug}`} className="product-card-link">
         <div className="product-card-visual">
-          <ProductImage src={product.image_url} alt={`${product.brand} ${name}`} category={product.category_slug} brand={product.brand} />
+          <ProductImage src={product.image_url} alt={`${product.brand} ${name}`} category={product.category_slug} brand={product.brand} name={product.name} socket={product.socket} />
         </div>
         <p className="product-card-brand">{product.brand}</p>
         <h3 className="product-card-name">{name}</h3>

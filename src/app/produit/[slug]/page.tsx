@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="pdp-gallery">
           <div className="product-hero-visual">
             <PromoFlag product={product} large />
-            <ProductImage src={product.image_url} alt={fullName} category={product.category_slug} brand={product.brand} priority />
+            <ProductImage src={product.image_url} alt={fullName} category={product.category_slug} brand={product.brand} name={product.name} socket={product.socket} priority />
           </div>
         </div>
 
@@ -215,7 +215,7 @@ export default async function ProductPage({ params }: Props) {
                   )}
                   <Link href={`/produit/${p.slug}`} className="bundle-card">
                     <span className="bundle-img">
-                      <ProductImage src={p.image_url} alt="" category={p.category_slug} />
+                      <ProductImage src={p.image_url} alt="" category={p.category_slug} brand={p.brand} name={p.name} socket={p.socket} />
                     </span>
                     <span className="bundle-name">
                       {i === 0 ? "Cet article : " : ""}

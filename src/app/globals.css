@@ -3565,3 +3565,13 @@ tr.is-read {
   gap: 6px;
 }
 
+
+.visual-cpu {
+  background: #fff;
+}
+
+.visual-cpu .cpu-visual {
+  width: 82%;
+  height: auto;
+  max-height: 100%;
+}

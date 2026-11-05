@@ -62,7 +62,7 @@ export function RecentlyViewed({ excludeId, title = "Vous avez consulté" }: { e
             <li key={p.id}>
               <Link href={`/produit/${p.slug}`} className="mini-card">
                 <span className="mini-card-img">
-                  <ProductImage src={p.image_url} alt="" category={p.category_slug} />
+                  <ProductImage src={p.image_url} alt="" category={p.category_slug} brand={p.brand} name={p.name} socket={p.socket} />
                 </span>
                 <span className="mini-card-name">
                   {p.brand} {displayName(p)}
