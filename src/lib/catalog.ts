@@ -73,7 +73,7 @@ export const getCategoryTree = cache(async (): Promise<CategoryNode[]> => {
 
 export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   if (!SLUG_RE.test(slug)) return null;
-  const res = await supabase.from("products").select(PRODUCT_COLUMNS).eq("slug", slug).eq("active", true).maybeSingle();
+  const res = await supabase.from("products").select(`${PRODUCT_COLUMNS}, images`).eq("slug", slug).eq("active", true).maybeSingle();
   return must(res, "produit");
 });
 

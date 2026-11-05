@@ -38,6 +38,11 @@ export async function GET() {
         ["g:description", productDescription(p, 5000)],
         ["g:link", `${site}/produit/${p.slug}`],
         ["g:image_link", p.image_url!],
+        // Jusqu'à 10 photos supplémentaires acceptées par Google.
+        ...(p.images ?? [])
+          .filter((u) => u !== p.image_url)
+          .slice(0, 10)
+          .map((u): [string, string] => ["g:additional_image_link", u]),
         ["g:availability", "in_stock"],
         ["g:condition", "new"],
         ["g:brand", p.brand],

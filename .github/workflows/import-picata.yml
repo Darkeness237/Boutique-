@@ -83,3 +83,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
         run: node scripts/import-fournisseur.mjs picata incoming/picata.csv
+
+      - name: Photos, fiches et galeries des nouveaux produits (Open Icecat)
+        if: github.event.inputs.mode != 'inspecter'
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
+        run: |
+          timeout 20m node scripts/enrichir-icecat.mjs || true
+          timeout 20m node scripts/galerie-icecat.mjs 1000 || true

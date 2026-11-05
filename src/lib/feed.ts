@@ -6,7 +6,7 @@ export async function allProducts(opts: { inStockWithImage?: boolean } = {}): Pr
   const out: Product[] = [];
   // Pages de 400 lignes : chaque réponse reste sous la limite de 2 Mo du cache de Next.js.
   for (let from = 0; from < 50_000; from += 400) {
-    let q = supabase.from("products").select(PRODUCT_COLUMNS).eq("active", true);
+    let q = supabase.from("products").select(`${PRODUCT_COLUMNS}, images`).eq("active", true);
     // Flux Google : seulement les produits compétitifs (une annonce plus chère qu'Amazon coûte sans vendre).
     if (opts.inStockWithImage) q = q.eq("in_stock", true).eq("has_image", true).eq("promote", true);
     const { data, error } = await q.order("id").range(from, from + 399);

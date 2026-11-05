@@ -6,6 +6,7 @@ import { BuyBox } from "@/components/BuyBox";
 import { Countdown } from "@/components/Countdown";
 import { PriceTag } from "@/components/PriceTag";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductGallery } from "@/components/ProductGallery";
 import { ProductImage } from "@/components/ProductImage";
 import { ProductRail } from "@/components/ProductRail";
 import { RecentlyViewed, RecordView } from "@/components/RecentlyViewed";
@@ -108,10 +109,14 @@ export default async function ProductPage({ params }: Props) {
 
       <div className="wrap pdp">
         <div className="pdp-gallery">
-          <div className="product-hero-visual">
-            <PromoFlag product={product} large />
-            <ProductImage src={product.image_url} alt={fullName} category={product.category_slug} brand={product.brand} name={product.name} socket={product.socket} priority />
-          </div>
+          <ProductGallery
+            photos={[...new Set([product.image_url, ...(product.images ?? [])].filter((u): u is string => !!u))]}
+            alt={fullName}
+            flag={<PromoFlag product={product} large />}
+            fallback={
+              <ProductImage src={null} alt={fullName} category={product.category_slug} brand={product.brand} name={product.name} socket={product.socket} priority />
+            }
+          />
         </div>
 
         <div className="pdp-info">

@@ -33,6 +33,8 @@ export type Product = {
   cm_kg: number | null;
   /** Mis en avant (accueil, bannières, Google Shopping) : rayon rentable et prix compétitif. */
   promote: boolean;
+  /** Galerie de photos officielles (fiche produit seulement, absente des listes). */
+  images?: string[];
 };
 
 /** Promotion en cours (la date de fin est revérifiée ici, au cas où la base n'a pas encore été rafraîchie). */

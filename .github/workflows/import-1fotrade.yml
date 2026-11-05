@@ -72,4 +72,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           IMPORT_TOKEN: ${{ secrets.IMPORT_TOKEN }}
-        run: timeout 20m node scripts/enrichir-icecat.mjs || true
+        run: |
+          timeout 20m node scripts/enrichir-icecat.mjs || true
+          timeout 20m node scripts/galerie-icecat.mjs 1000 || true

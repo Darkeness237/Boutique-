@@ -31,7 +31,7 @@ export function productJsonLd(p: Product) {
     "@type": "Product",
     name: `${p.brand} ${displayName(p)}`,
     description: productDescription(p, 1000),
-    ...(p.image_url ? { image: [p.image_url] } : {}),
+    ...(p.image_url ? { image: [...new Set([p.image_url, ...(p.images ?? [])])] } : {}),
     brand: { "@type": "Brand", name: p.brand },
     ...(gtin(p) ? { gtin: gtin(p) } : {}),
     sku: String(p.id),
