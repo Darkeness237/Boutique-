@@ -17,7 +17,7 @@ export async function Header() {
         Aller au contenu
       </a>
       <div className="header-row wrap">
-        <Link href="/" className="header-logo" aria-label="Silicium, accueil">
+        <Link href="/" className="header-logo" aria-label="Vetex PC, accueil">
           <Logo />
         </Link>
         <form action="/catalogue" method="get" role="search" className="header-search">

@@ -16,13 +16,13 @@ import { getMarket } from "@/lib/market-server";
 
 export const metadata: Metadata = {
   title: {
-    default: "Silicium · Composants PC et matériel gaming",
-    template: "%s · Silicium",
+    default: "Vetex PC · Composants PC et matériel gaming",
+    template: "%s · Vetex PC",
   },
   description:
     "Processeurs, cartes graphiques, cartes mères et périphériques gaming. Compatibilité vérifiée sur chaque fiche, configs PC complètes, livraison partout en France.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  openGraph: { siteName: "Silicium", locale: "fr_FR", type: "website" },
+  openGraph: { siteName: "Vetex PC", locale: "fr_FR", type: "website" },
   // Codes de validation de Google Search Console et Bing, à renseigner dans Netlify.
   verification: {
     ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),

@@ -64,7 +64,7 @@ export async function GET() {
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>
-<title>Silicium</title><link>${site}</link><description>Composants PC et matériel gaming</description>
+<title>Vetex PC</title><link>${site}</link><description>Composants PC et matériel gaming</description>
 ${items.join("\n")}
 </channel></rss>`;
   return new Response(body, { headers: { "Content-Type": "application/xml; charset=utf-8" } });

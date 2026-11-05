@@ -78,7 +78,7 @@ export async function Footer() {
             </ul>
           </nav>
           <p className="footer-copy">
-            © {new Date().getFullYear()} Silicium · {priceNote(market, PRICE_NOTE)}
+            © {new Date().getFullYear()} Vetex PC · {priceNote(market, PRICE_NOTE)}
           </p>
           <p className="footer-copy footer-credit">
             Photos et caractéristiques produits : fabricants, via Open Icecat. Contenu fourni en l&apos;état.

@@ -43,7 +43,7 @@ export function productJsonLd(p: Product) {
       ...(promo && p.promo_ends_at ? { priceValidUntil: p.promo_ends_at.slice(0, 10) } : {}),
       availability: p.in_stock ? "https://schema.org/InStock" : "https://schema.org/BackOrder",
       itemCondition: "https://schema.org/NewCondition",
-      seller: { "@type": "Organization", name: "Silicium" },
+      seller: { "@type": "Organization", name: "Vetex PC" },
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
