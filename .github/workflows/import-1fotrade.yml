@@ -57,6 +57,14 @@ jobs:
           lftp --env-password -u "$USER_NAME" -p 23 "sftp://$HOST" -e "get \"$LATEST\" -o incoming/catalogue.csv; bye"
           echo "FILE=incoming/catalogue.csv" >> "$GITHUB_ENV"
 
+      - name: Format du fichier (en-tête seulement, jamais de prix)
+        if: env.FILE != ''
+        run: |
+          echo "Lignes : $(wc -l < "$FILE")"
+          echo "Encodage : $(file -b "$FILE")"
+          echo "En-tête :"
+          head -n 1 "$FILE" | iconv -f "$(file -b --mime-encoding "$FILE" | sed 's/unknown-8bit/latin1/')" -t utf-8 2>/dev/null || head -n 1 "$FILE"
+
       - name: Importer dans Supabase
         if: env.FILE != ''
         env:
