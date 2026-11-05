@@ -12,12 +12,15 @@
 import { readFileSync } from "node:fs";
 
 const SUPPLIERS = {
-  // Format du fichier « 1fotrade_price.csv » : séparateur « ; », prix HT avec un point.
-  // Encodage : UTF-8 (flux EDI) ou Latin-1 (export manuel), détecté automatiquement.
+  // Flux EDI 1foTrade déposé sur la Storage Box (« Vetex_PC_-_catalogue.csv ») : séparateur « ; », UTF-8,
+  // prix HT avec un point, stock en quantité, poids en kg.
+  // EAN;NOM;"ID PRODUIT";CONSTRUCTEUR;CATEGORIE;MARQUE;PRIX;POIDS;STOCK
+  // L'ancien export manuel (SKU;EAN;reference;Famille;nom;votre prix;stock;marque) reste accepté.
   "1fotrade": {
     separator: ";",
-    columns: { sku: "SKU", ean: "EAN", mpn: "reference", family: "Famille", name: "nom", cost: "votre prix", stock: "stock", brand: "marque" },
-    inStock: (v) => v.trim().toLowerCase() === "oui",
+    columns: { sku: "ID PRODUIT", ean: "EAN", mpn: "CONSTRUCTEUR", family: "CATEGORIE", name: "NOM", cost: "PRIX", stock: "STOCK", brand: "MARQUE" },
+    legacyColumns: { sku: "SKU", ean: "EAN", mpn: "reference", family: "Famille", name: "nom", cost: "votre prix", stock: "stock", brand: "marque" },
+    inStock: (v) => v.trim().toLowerCase() === "oui" || Number.parseInt(v, 10) > 0,
     families: [
       "Processeur", "Carte Mère", "Carte Graphique", "Mémoire RAM", "Stockage", "Alimentation PC", "Boîtier PC",
       "Watercooling", "Ventilateur pour Processeur", "Ventilateur de Boîtier", "Autres Eléments de Refroidissement",
@@ -107,8 +110,10 @@ function decode(buf) {
 
 const raw = parseCsv(decode(readFileSync(file)), config.separator);
 const header = raw[0].map((h) => h.trim());
+// Ancien format accepté s'il est reconnu à son en-tête.
+const columns = config.legacyColumns && header.includes(config.legacyColumns.sku) ? config.legacyColumns : config.columns;
 const col = Object.fromEntries(
-  Object.entries(config.columns).map(([k, name]) => {
+  Object.entries(columns).map(([k, name]) => {
     const i = header.indexOf(name);
     if (i < 0) fail(`colonne « ${name} » absente du fichier`);
     return [k, i];
@@ -187,7 +192,8 @@ async function rpc(fn, args) {
 
 const quarantined = offers.filter((o) => o.quarantine_reason);
 console.log(`${offers.length} offres retenues (${skipped} lignes invalides ignorées), ${quarantined.length} bloquées par le garde-fou prix.`);
-for (const o of quarantined) console.log(`  quarantaine : ${o.sku} ${o.name.slice(0, 70)} — ${o.quarantine_reason}`);
+// Le détail (avec les prix) est enregistré en base ; le journal, public sur GitHub, n'affiche que les références.
+for (const o of quarantined) console.log(`  quarantaine : ${o.sku} ${o.name.slice(0, 70)}`);
 
 const runId = await rpc("import_start", { p_supplier_id: supplierId });
 for (let i = 0; i < offers.length; i += BATCH) {
