@@ -10,6 +10,8 @@
 const LIMIT = Number(process.argv[2] ?? 5000);
 const CONCURRENCY = 4;
 const MAX_IMAGES = 8;
+// Images parasites publiées dans certaines galeries (QR code de garantie, dos d'emballage couvert de texte).
+const JUNK = ["26028ffcf3b8273535b395bd29f1b10ee192459a", "eb4799713160dc2418d3b9c5d8a700a5a67cef1c", "587d55bbce8ae26910688e7b0b1da10f01e12d22"];
 
 const { NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: key, IMPORT_TOKEN: token } = process.env;
 if (!url || !key || !token) {
@@ -39,7 +41,7 @@ async function gallery(ean) {
   const urls = [];
   for (const g of items) {
     const u = g.Pic500x500 || g.LowPic;
-    if (u?.startsWith("https://images.icecat.biz/") && !urls.includes(u)) urls.push(u);
+    if (u?.startsWith("https://images.icecat.biz/") && !urls.includes(u) && !JUNK.some((h) => u.includes(h))) urls.push(u);
     if (urls.length >= MAX_IMAGES) break;
   }
   return urls;

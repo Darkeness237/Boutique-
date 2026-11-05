@@ -47,3 +47,18 @@ revoke all on function public.packaging_todo(text, integer) from public;
 revoke all on function public.import_packaging(text, jsonb) from public;
 grant execute on function public.packaging_todo(text, integer) to anon, authenticated;
 grant execute on function public.import_packaging(text, jsonb) to anon, authenticated;
+
+-- Produits en stock à vérifier, par pages (classement des photos candidates).
+create or replace function public.packaging_candidates(p_token text, p_limit integer, p_offset integer)
+returns table(ean text, images text[]) language plpgsql security definer set search_path = '' as $$
+begin
+  perform private.assert_import_token(p_token);
+  return query
+    select p.ean, p.images from public.products p
+    where p.active and p.in_stock and cardinality(p.images) >= 2 and p.packaging_checked_at is null
+    order by p.promote desc, p.id
+    limit least(greatest(p_limit, 1), 1000) offset greatest(p_offset, 0);
+end;
+$$;
+revoke all on function public.packaging_candidates(text, integer, integer) from public;
+grant execute on function public.packaging_candidates(text, integer, integer) to anon, authenticated;
